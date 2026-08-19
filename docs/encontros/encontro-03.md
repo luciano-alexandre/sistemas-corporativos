@@ -17,18 +17,83 @@ Autenticação local e autorização em NestJS com Passport.
 
 ## Projeto usado nos exemplos
 
-Os exemplos partem da API-base do encontro 2, executada em
-`http://localhost:3000` e com `ValidationPipe` global.
+Os exemplos partem da API-base do encontro 2, com `ValidationPipe` global. A
+aplicação será executada em um contêiner Docker e ficará disponível no host em
+`http://localhost:3000`. As requisições serão realizadas pela extensão Thunder
+Client do VS Code.
 
-Dependências usadas:
+Ferramentas necessárias:
+
+- Docker com o comando `docker compose`;
+- Visual Studio Code;
+- extensão Thunder Client instalada no VS Code.
+
+Dependências usadas no projeto:
 
 ```bash
-npm install @nestjs/passport passport passport-local
-npm install -D @types/passport-local
+docker compose run --rm api npm install @nestjs/passport passport passport-local
+docker compose run --rm api npm install -D @types/passport-local
 ```
+
+Esses comandos pressupõem os arquivos Docker apresentados a seguir e atualizam
+`package.json` e `package-lock.json` por meio do contêiner, sem exigir Node.js ou
+npm instalados diretamente na máquina.
 
 Neste encontro, os usuários serão mantidos em memória para concentrar a aula no
 fluxo de autenticação. Hash de senha, JWT e persistência serão tratados depois.
+
+## Execução do projeto com Docker
+
+Crie um arquivo `Dockerfile` na raiz do projeto:
+
+```dockerfile
+FROM node:22-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+
+EXPOSE 3000
+
+CMD ["npm", "run", "start:dev"]
+```
+
+Crie também `compose.yaml` na raiz:
+
+```yaml
+services:
+  api:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    command: npm run start:dev
+
+volumes:
+  node_modules:
+```
+
+O primeiro volume permite que alterações no código sejam percebidas pelo modo
+de desenvolvimento do NestJS. O volume nomeado preserva as dependências do
+contêiner e evita que uma pasta `node_modules` do host as sobrescreva.
+
+Depois de instalar as dependências de autenticação, construa e inicie a API:
+
+```bash
+docker compose up --build
+```
+
+Mantenha esse terminal aberto durante os testes. A saída deve indicar que o
+NestJS está ouvindo na porta `3000`. Para encerrar, pressione `Ctrl+C` e execute:
+
+```bash
+docker compose down
+```
 
 ## Visão geral
 
@@ -307,17 +372,32 @@ export class AuthModule {}
 
 Importe `AuthModule` no módulo principal da aplicação.
 
-## Testes manuais
+## Testes dos endpoints com Thunder Client
+
+Com o contêiner em execução, abra o VS Code, selecione o ícone do Thunder Client
+na barra lateral e clique em **New Request**.
 
 ### Login válido
 
-```bash
-curl -i -X POST http://localhost:3000/auth/login \
-  -H 'Content-Type: application/json' \
-  -d '{"email":"ana@empresa.com","senha":"123456"}'
+Configure a requisição:
+
+- método: `POST`;
+- URL: `http://localhost:3000/auth/login`;
+- aba **Body**: selecione **JSON**;
+- corpo:
+
+```json
+{
+  "email": "ana@empresa.com",
+  "senha": "123456"
+}
 ```
 
-Resposta esperada:
+Clique em **Send**. O Thunder Client adicionará
+`Content-Type: application/json` ao selecionar o corpo JSON.
+
+Resultado esperado: status `201 Created`, que é o padrão de uma rota `POST` no
+NestJS, e o corpo:
 
 ```json
 {
@@ -333,13 +413,21 @@ Resposta esperada:
 
 ### Login inválido
 
-```bash
-curl -i -X POST http://localhost:3000/auth/login \
-  -H 'Content-Type: application/json' \
-  -d '{"email":"ana@empresa.com","senha":"errada"}'
+Duplique a requisição anterior e altere apenas a senha:
+
+```json
+{
+  "email": "ana@empresa.com",
+  "senha": "errada"
+}
 ```
 
-Resultado esperado: `401 Unauthorized`, sem revelar se o e-mail existe.
+Clique em **Send**. O resultado esperado é `401 Unauthorized`, sem revelar se
+o e-mail existe.
+
+Salve as duas requisições em uma coleção chamada **Encontro 03**. Antes de
+versionar ou compartilhar a coleção, confirme que ela contém somente as
+credenciais fictícias usadas na aula.
 
 ## Exercício de implementação
 
@@ -351,8 +439,10 @@ A implementação completa da autenticação local reúne:
 4. validação de credenciais com remoção da senha do retorno;
 5. `LocalStrategy` e `LocalAuthGuard`;
 6. endpoint `POST /auth/login`;
-7. testes de usuário válido, senha inválida, conta inexistente e conta inativa;
-8. respostas registradas sem credenciais no repositório.
+7. execução da API com `docker compose up --build`;
+8. testes no Thunder Client de usuário válido, senha inválida, conta inexistente
+   e conta inativa;
+9. respostas registradas sem credenciais reais no repositório.
 
 ## Análise conceitual
 
@@ -407,6 +497,8 @@ Sem um mecanismo enviado nas próximas requisições, a identidade não é manti
 - Compreendo estratégia, guard e principal autenticado.
 - Sei onde validar credenciais.
 - Consigo implementar autenticação local com Passport.
+- Consigo executar o projeto por meio do Docker Compose.
+- Consigo testar os endpoints com o Thunder Client.
 - Não exponho senha na resposta.
 - Reconheço as limitações que serão resolvidas por hash e JWT.
 
