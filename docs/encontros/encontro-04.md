@@ -2,260 +2,300 @@
 
 ## Tema
 
-JWT, guards, autorização por papéis, hash de senha e segurança básica de APIs.
+JWT, hash de senha e autorização por papéis em NestJS com execução via Docker.
 
 ## Objetivos
 
-- Compreender o papel de um token após o login.
-- Reconhecer estrutura, assinatura e limitações de um JWT.
-- Emitir tokens e proteger rotas com uma estratégia JWT.
-- Armazenar senhas por hash com salt e comparação segura.
-- Implementar autorização por papéis com metadata e guard.
-- Aplicar princípio do menor privilégio e segregação de funções.
-- Introduzir gestão de segredos, CORS, rate limiting e proteção contra ataques comuns.
+- Dar continuidade ao projeto construído no encontro 3.
+- Instalar e executar as dependências por meio do Docker Compose.
+- Substituir senhas em texto puro por hashes com salt.
+- Emitir e validar um JWT após a autenticação local.
+- Implementar autorização por papéis com decorator e guard.
+- Diferenciar, na prática, respostas `401 Unauthorized` e `403 Forbidden`.
 - Preparar a API para a Prática 1 do encontro 5.
 
-## Projeto usado nos exemplos
+## Ponto de partida
 
-Os exemplos continuam a aplicação do encontro 3, cuja autenticação local já
-está em funcionamento.
+Use a mesma pasta do projeto do encontro 3. Ela já deve conter:
+
+- a API NestJS com `ValidationPipe` global;
+- os módulos `usuarios` e `auth`;
+- autenticação local com Passport;
+- `Dockerfile` e `compose.yaml`;
+- a rota `POST /auth/login` funcionando.
+
+Não crie outra aplicação. Cada passo modifica o projeto anterior. Node.js e
+npm não precisam estar instalados no host: os comandos serão executados no
+serviço `api` do Docker Compose.
+
+## Resultado esperado
+
+```mermaid
+sequenceDiagram
+    participant C as Thunder Client
+    participant L as Login local
+    participant J as JwtService
+    participant A as JwtAuthGuard
+    participant R as RolesGuard
+    participant S as SolicitacoesController
+    C->>L: POST /auth/login com email e senha
+    L->>J: Assina identidade e papel
+    J-->>C: accessToken
+    C->>A: PATCH /solicitacoes/1/aprovar + Bearer token
+    A->>A: Verifica assinatura e expiracao
+    A->>R: Disponibiliza request.user
+    R->>R: Verifica o papel gestor
+    R->>S: Autoriza a operacao
+    S-->>C: Solicitacao aprovada
+```
+
+## Passo 1 - Instalar as dependências no contêiner
+
+Na raiz do projeto, execute:
 
 ```bash
-npm install @nestjs/jwt passport-jwt bcrypt
-npm install -D @types/passport-jwt @types/bcrypt
+docker compose run --rm api npm install @nestjs/jwt passport-jwt bcrypt
+docker compose run --rm api npm install -D @types/passport-jwt @types/bcrypt
 ```
 
-A configuração utiliza um arquivo `.env` local ignorado pelo Git:
+Os comandos atualizam `package.json` e `package-lock.json` pelo contêiner. O
+volume `node_modules`, criado no encontro 3, mantém as dependências isoladas.
 
-```text
-JWT_SECRET=troque-este-valor-no-ambiente-local
-JWT_EXPIRES_IN=15m
+## Passo 2 - Configurar o ambiente no Docker
+
+Crie `.env` na raiz do projeto:
+
+```dotenv
+JWT_SECRET=chave-local-apenas-para-o-laboratorio
+JWT_EXPIRES_IN_SECONDS=900
 ```
 
-Nunca registre segredos reais em exemplos, commits, prints ou entregas.
+O valor `900` corresponde a 15 minutos. Em um sistema real, o segredo deve ser
+longo, aleatório, diferente por ambiente e armazenado com segurança.
 
-## Visão geral
+Crie `.env.example`, que pode ser versionado:
 
-O encontro anterior validou e-mail e senha em uma requisição de login. Isso não
-é suficiente para as próximas chamadas. A API precisa reconhecer o usuário sem
-receber sua senha em todas as requisições.
+```dotenv
+JWT_SECRET=defina-um-segredo-no-arquivo-env
+JWT_EXPIRES_IN_SECONDS=900
+```
 
-Também é necessário corrigir dois problemas:
+Confirme que `.env` está no `.gitignore`:
 
-- senhas não podem permanecer em texto puro;
-- usuário autenticado não deve ter acesso automático a todas as operações.
+```gitignore
+node_modules
+dist
+.env
+```
 
-Neste encontro, o login emitirá um JWT, as senhas serão comparadas por hash e
-rotas críticas exigirão papéis específicos.
+Atualize o serviço `api` em `compose.yaml`:
 
-## Pergunta central
+```yaml
+services:
+  api:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    env_file:
+      - .env
+    command: npm run start:dev
 
-Como manter a identidade entre requisições e autorizar operações sem expor
-senhas, confiar em dados manipuláveis ou conceder privilégios excessivos?
+volumes:
+  node_modules:
+```
 
-## Modelo de ameaça inicial
+`env_file` torna explícito que as variáveis chegarão ao processo NestJS dentro
+do contêiner.
 
-Antes de implementar controles, considere possíveis abusos:
+## Passo 3 - Substituir senhas por hashes
 
-| Ameaça | Exemplo | Controle inicial |
-|---|---|---|
-| vazamento de senha | banco ou log é exposto | hash com salt; não registrar credenciais |
-| força bruta | muitas tentativas de login | rate limit e monitoramento |
-| token adulterado | cliente muda o papel no payload | assinatura verificada |
-| token roubado | atacante reutiliza token válido | HTTPS, expiração curta e revogação planejada |
-| excesso de privilégio | solicitante acessa aprovação | autorização no servidor |
-| segredo versionado | chave JWT publicada no Git | variável de ambiente e rotação |
+Um hash de senha não deve ser reversível. No cadastro, a aplicação calcula o
+hash com salt; no login, compara a tentativa com o hash armazenado.
 
-Segurança é composta por camadas. JWT não substitui HTTPS, autorização, gestão
-de segredos, validação ou monitoramento.
+Para gerar um hash da senha didática `123456` pelo contêiner:
 
-## Hash de senha
+```bash
+docker compose run --rm api node -e "require('bcrypt').hash('123456', 12).then(console.log)"
+```
 
-Criptografia reversível não é a solução para armazenar senha. A aplicação não
-precisa recuperar a senha original; precisa verificar se a tentativa produz um
-resultado compatível.
+Cada execução produz um resultado diferente por causa do salt. Para tornar o
+roteiro reproduzível, o código abaixo já traz um hash válido.
 
-### Hash, salt e comparação
-
-1. no cadastro, a aplicação recebe a senha;
-2. gera um salt e calcula um hash usando algoritmo adequado;
-3. armazena somente o resultado;
-4. no login, compara a tentativa com o hash armazenado;
-5. nunca devolve o hash ao cliente.
+Substitua `src/usuarios/usuarios.service.ts` por:
 
 ```ts
-import * as bcrypt from 'bcrypt';
+import { Injectable } from '@nestjs/common';
 
-const custo = 12;
-const hash = await bcrypt.hash(senhaRecebida, custo);
-const corresponde = await bcrypt.compare(tentativa, hash);
-```
+export type Papel = 'solicitante' | 'gestor' | 'auditor';
 
-O fator de custo deve equilibrar resistência e capacidade operacional. Valores
-devem ser avaliados no ambiente real, não copiados sem medição.
-
-### Atualização do usuário didático
-
-```ts
-type Usuario = {
+export type Usuario = {
   id: number;
   nome: string;
   email: string;
   senhaHash: string;
-  papel: 'solicitante' | 'gestor' | 'auditor';
+  papel: Papel;
   ativo: boolean;
 };
+
+export type UsuarioAutenticado = Omit<Usuario, 'senhaHash'>;
+
+@Injectable()
+export class UsuariosService {
+  private readonly usuarios: Usuario[] = [
+    {
+      id: 1,
+      nome: 'Ana Lima',
+      email: 'ana@empresa.com',
+      senhaHash:
+        '$2b$12$5S9LDbR3FznMAsZY5P..2OKE932dOHeVvGrmlfklgquClbkKgUidC',
+      papel: 'gestor',
+      ativo: true,
+    },
+    {
+      id: 2,
+      nome: 'Bruno Silva',
+      email: 'bruno@empresa.com',
+      senhaHash:
+        '$2b$12$5S9LDbR3FznMAsZY5P..2OKE932dOHeVvGrmlfklgquClbkKgUidC',
+      papel: 'solicitante',
+      ativo: true,
+    },
+  ];
+
+  buscarPorEmail(email: string) {
+    return this.usuarios.find((usuario) => usuario.email === email);
+  }
+}
 ```
 
-### Atualização da validação
+Os dois usuários usam a senha didática `123456`. Reutilizar senha ou hash não
+é aceitável fora deste laboratório.
+
+## Passo 4 - Comparar a senha e emitir o JWT
+
+Substitua `src/auth/auth.service.ts` por:
 
 ```ts
-async validarUsuario(email: string, senha: string) {
-  const usuario = this.usuariosService.buscarPorEmail(email);
+import { Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
+import {
+  UsuarioAutenticado,
+  UsuariosService,
+} from '../usuarios/usuarios.service';
 
-  if (!usuario || !usuario.ativo) {
-    return null;
+@Injectable()
+export class AuthService {
+  constructor(
+    private readonly usuariosService: UsuariosService,
+    private readonly jwtService: JwtService,
+  ) {}
+
+  async validarUsuario(email: string, senha: string) {
+    const usuario = this.usuariosService.buscarPorEmail(email);
+
+    if (!usuario || !usuario.ativo) {
+      return null;
+    }
+
+    const senhaValida = await bcrypt.compare(senha, usuario.senhaHash);
+
+    if (!senhaValida) {
+      return null;
+    }
+
+    const { senhaHash: _senhaHash, ...principal } = usuario;
+    return principal;
   }
 
-  const senhaValida = await bcrypt.compare(senha, usuario.senhaHash);
+  login(usuario: UsuarioAutenticado) {
+    const payload = {
+      sub: usuario.id,
+      email: usuario.email,
+      papel: usuario.papel,
+    };
 
-  if (!senhaValida) {
-    return null;
+    return {
+      accessToken: this.jwtService.sign(payload),
+    };
+  }
+}
+```
+
+O JWT é assinado, mas seu payload pode ser lido. Senha, hash e outros dados
+sensíveis não devem ser incluídos.
+
+## Passo 5 - Fazer o login devolver o token
+
+Substitua `src/auth/auth.controller.ts` por:
+
+```ts
+import { Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { UsuarioAutenticado } from '../usuarios/usuarios.service';
+import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { LocalAuthGuard } from './guards/local-auth.guard';
+
+type RequisicaoAutenticada = {
+  user: UsuarioAutenticado;
+};
+
+@Controller('auth')
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
+  @UseGuards(LocalAuthGuard)
+  @Post('login')
+  login(@Req() request: RequisicaoAutenticada) {
+    return this.authService.login(request.user);
   }
 
-  const { senhaHash: _senhaHash, ...principal } = usuario;
-  return principal;
+  @UseGuards(JwtAuthGuard)
+  @Get('perfil')
+  perfil(@Req() request: RequisicaoAutenticada) {
+    return request.user;
+  }
 }
 ```
 
-## O que é JWT?
+O import de `JwtAuthGuard` ficará resolvido no próximo passo.
 
-JWT é um formato compacto de token composto por três partes codificadas:
+## Passo 6 - Criar a estratégia e o guard JWT
 
-```text
-header.payload.signature
-```
-
-- header: algoritmo e tipo do token;
-- payload: claims sobre a identidade e o token;
-- signature: permite detectar alteração usando uma chave.
-
-### JWT é codificado, não necessariamente criptografado
-
-O payload pode ser lido por quem possui o token. Portanto, não coloque senha,
-documentos, informações médicas ou outros dados sensíveis nele.
-
-### Claims úteis
-
-```json
-{
-  "sub": 1,
-  "email": "ana@empresa.com",
-  "papel": "gestor",
-  "iat": 1786460000,
-  "exp": 1786460900
-}
-```
-
-| Claim | Papel |
-|---|---|
-| `sub` | identificador estável do sujeito |
-| `iat` | instante de emissão |
-| `exp` | instante de expiração |
-| `iss` | emissor, quando configurado |
-| `aud` | público esperado, quando configurado |
-
-## Fluxo completo
-
-```mermaid
-sequenceDiagram
-    participant C as Cliente
-    participant L as Login local
-    participant J as JwtService
-    participant G as JwtAuthGuard
-    participant R as Rota protegida
-    C->>L: Email e senha
-    L->>J: Assina claims
-    J-->>C: Access token
-    C->>G: Authorization Bearer token
-    G->>G: Verifica assinatura e expiracao
-    G->>R: Principal autenticado
-    R-->>C: Resposta autorizada
-```
-
-## Configurar `JwtModule`
-
-Para o laboratório, a configuração pode ler variáveis de ambiente. Em um
-projeto real, use `ConfigModule` com validação de configuração.
+Crie `src/auth/strategies/jwt.strategy.ts`:
 
 ```ts
-@Module({
-  imports: [
-    PassportModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
-      signOptions: {
-        expiresIn: process.env.JWT_EXPIRES_IN ?? '15m',
-      },
-    }),
-    UsuariosModule,
-  ],
-  controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
-})
-export class AuthModule {}
-```
-
-Falhe na inicialização se o segredo obrigatório não existir. Usar um valor
-padrão fraco em produção transforma erro de configuração em vulnerabilidade.
-
-## Emitir o token
-
-```ts
-constructor(
-  private readonly usuariosService: UsuariosService,
-  private readonly jwtService: JwtService,
-) {}
-
-login(usuario: { id: number; email: string; papel: string }) {
-  const payload = {
-    sub: usuario.id,
-    email: usuario.email,
-    papel: usuario.papel,
-  };
-
-  return {
-    accessToken: this.jwtService.sign(payload),
-  };
-}
-```
-
-No controller:
-
-```ts
-@UseGuards(LocalAuthGuard)
-@Post('login')
-login(@Req() request: { user: UsuarioAutenticado }) {
-  return this.authService.login(request.user);
-}
-```
-
-## Validar o token
-
-```ts
+import { Injectable } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { Papel } from '../../usuarios/usuarios.service';
+
+type JwtPayload = {
+  sub: number;
+  email: string;
+  papel: Papel;
+};
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor() {
+    const secret = process.env.JWT_SECRET;
+
+    if (!secret) {
+      throw new Error('JWT_SECRET nao foi definido');
+    }
+
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET,
+      secretOrKey: secret,
     });
   }
 
-  validate(payload: { sub: number; email: string; papel: string }) {
+  validate(payload: JwtPayload) {
     return {
       id: payload.sub,
       email: payload.email,
@@ -265,243 +305,361 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 }
 ```
 
+Crie `src/auth/guards/jwt-auth.guard.ts`:
+
 ```ts
+import { Injectable } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {}
 ```
 
-### Rota autenticada
+A estratégia extrai o token de `Authorization: Bearer ...`, verifica assinatura
+e expiração e disponibiliza seu retorno como `request.user`.
+
+## Passo 7 - Atualizar o módulo de autenticação
+
+Substitua `src/auth/auth.module.ts` por:
 
 ```ts
-@UseGuards(JwtAuthGuard)
-@Get('perfil')
-perfil(@Req() request: { user: UsuarioAutenticado }) {
-  return request.user;
-}
+import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { UsuariosModule } from '../usuarios/usuarios.module';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { LocalAuthGuard } from './guards/local-auth.guard';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { LocalStrategy } from './strategies/local.strategy';
+
+@Module({
+  imports: [
+    UsuariosModule,
+    PassportModule,
+    JwtModule.registerAsync({
+      useFactory: () => {
+        const secret = process.env.JWT_SECRET;
+
+        if (!secret) {
+          throw new Error('JWT_SECRET nao foi definido');
+        }
+
+        return {
+          secret,
+          signOptions: {
+            expiresIn: Number(process.env.JWT_EXPIRES_IN_SECONDS ?? 900),
+          },
+        };
+      },
+    }),
+  ],
+  controllers: [AuthController],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    JwtStrategy,
+    LocalAuthGuard,
+    JwtAuthGuard,
+  ],
+  exports: [JwtAuthGuard],
+})
+export class AuthModule {}
 ```
 
-Chamada:
+A aplicação falha ao iniciar sem `JWT_SECRET`, evitando o uso silencioso de
+um segredo padrão fraco.
 
-```bash
-curl -i http://localhost:3000/auth/perfil \
-  -H 'Authorization: Bearer SEU_TOKEN'
-```
+## Passo 8 - Criar o decorator de papéis
 
-## Autorização por papéis — RBAC
-
-RBAC associa permissões a papéis. É simples e útil, mas papéis muito genéricos
-podem acumular privilégios. Regras contextuais ainda pertencem ao domínio.
-
-### Decorator de papéis
+Crie `src/auth/decorators/roles.decorator.ts`:
 
 ```ts
+import { SetMetadata } from '@nestjs/common';
+import { Papel } from '../../usuarios/usuarios.service';
+
 export const ROLES_KEY = 'roles';
-
-export const Roles = (...roles: string[]) =>
-  SetMetadata(ROLES_KEY, roles);
+export const Roles = (...roles: Papel[]) => SetMetadata(ROLES_KEY, roles);
 ```
 
-### Guard de papéis
+O decorator registra quais papéis uma rota aceita. A decisão será feita pelo
+guard.
+
+## Passo 9 - Criar o guard de autorização
+
+Crie `src/auth/guards/roles.guard.ts`:
 
 ```ts
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { Papel } from '../../usuarios/usuarios.service';
+import { ROLES_KEY } from '../decorators/roles.decorator';
+
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const exigidos = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [
+    const papeisExigidos = this.reflector.getAllAndOverride<Papel[]>(ROLES_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
 
-    if (!exigidos?.length) {
+    if (!papeisExigidos?.length) {
       return true;
     }
 
     const request = context.switchToHttp().getRequest();
-    return exigidos.includes(request.user?.papel);
+    return papeisExigidos.includes(request.user?.papel);
   }
 }
 ```
 
-### Uso em rota
+Adicione o import e inclua `RolesGuard` nos `providers` e `exports` de
+`AuthModule`:
+
+```ts
+import { RolesGuard } from './guards/roles.guard';
+
+// Dentro de @Module:
+providers: [
+  AuthService,
+  LocalStrategy,
+  JwtStrategy,
+  LocalAuthGuard,
+  JwtAuthGuard,
+  RolesGuard,
+],
+exports: [JwtAuthGuard, RolesGuard],
+```
+
+## Passo 10 - Proteger a aprovação de solicitações
+
+No `SolicitacoesModule`, importe `AuthModule`:
+
+```ts
+@Module({
+  imports: [AuthModule],
+  controllers: [SolicitacoesController],
+  providers: [SolicitacoesService],
+})
+export class SolicitacoesModule {}
+```
+
+Acrescente a rota ao `SolicitacoesController` existente:
 
 ```ts
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('gestor')
 @Patch(':id/aprovar')
 aprovar(@Param('id', ParseIntPipe) id: number) {
-  return this.service.aprovar(id);
+  return this.solicitacoesService.aprovar(id);
 }
 ```
 
-A ordem importa: primeiro a identidade é autenticada; depois o papel é
-verificado.
-
-## Papel não substitui regra de negócio
-
-Um gestor pode ter o papel correto e ainda assim não poder aprovar:
-
-- solicitação de outra unidade;
-- solicitação já cancelada;
-- compra criada por ele próprio, se houver segregação de funções;
-- valor acima de seu limite de alçada.
-
-O guard resolve a autorização ampla. O caso de uso valida regras contextuais.
-
-## Controles complementares
-
-### Segredos
-
-- mantenha `.env` fora do Git;
-- publique `.env.example` sem valores reais;
-- use segredos diferentes por ambiente;
-- planeje rotação;
-- não escreva token ou senha em logs.
-
-### CORS
-
-CORS controla quais origens de navegador podem acessar a API. Não é mecanismo
-de autenticação e não impede chamadas feitas fora do navegador.
+Acrescente os imports que ainda não existirem:
 
 ```ts
-app.enableCors({
-  origin: ['http://localhost:5173'],
-  credentials: true,
-});
+import { Param, ParseIntPipe, Patch, UseGuards } from '@nestjs/common';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
 ```
 
-### Rate limiting
+No `SolicitacoesService`, implemente ou adapte:
 
-Limitar tentativas reduz abuso e força bruta. A política deve considerar IP,
-identidade, rota, infraestrutura e risco de bloquear usuários legítimos.
+```ts
+aprovar(id: number) {
+  const solicitacao = this.buscarPorId(id);
+  solicitacao.status = 'aprovada';
+  return solicitacao;
+}
+```
 
-### Cabeçalhos e transporte
+Se o tipo da solicitação ainda não tiver o campo, acrescente
+`status: 'pendente' | 'aprovada'` e inicialize novas solicitações com
+`status: 'pendente'`.
 
-Em produção, tokens e credenciais devem trafegar por HTTPS. Cabeçalhos de
-segurança, política de cookies e proxy reverso precisam ser configurados de
-acordo com a forma de implantação.
+A ordem dos guards importa: `JwtAuthGuard` autentica e preenche `request.user`;
+depois, `RolesGuard` verifica o papel.
 
-### Logs de segurança
+## Passo 11 - Construir e iniciar o projeto
 
-Logs de segurança incluem evento, instante, resultado e identificadores
-apropriados, mas nunca senha, segredo ou token completo.
+```bash
+docker compose up --build
+```
 
-## Exercício de implementação
+Mantenha o terminal aberto. A saída deve informar que o NestJS está ouvindo na
+porta `3000`. Para encerrar ao final da aula:
 
-A solução que integra os conceitos do encontro contém:
+```bash
+docker compose down
+```
 
-1. senhas em texto puro substituídas por hashes;
-2. `validarUsuario` usando comparação segura;
-3. login que devolve um access token;
-4. `JwtStrategy` e `JwtAuthGuard`;
-5. proteção de `GET /auth/perfil`;
-6. decorator `@Roles()` e `RolesGuard`;
-7. rota de aprovação restrita ao papel `gestor`;
-8. verificação dos cenários da matriz abaixo.
+## Passo 12 - Testar com Thunder Client
+
+Crie uma coleção chamada **Encontro 04**.
+
+### 1. Login do gestor
+
+- método: `POST`;
+- URL: `http://localhost:3000/auth/login`;
+- Body, JSON:
+
+```json
+{
+  "email": "ana@empresa.com",
+  "senha": "123456"
+}
+```
+
+Resultado esperado: `201 Created`:
+
+```json
+{
+  "accessToken": "eyJ..."
+}
+```
+
+### 2. Consultar o perfil
+
+- método: `GET`;
+- URL: `http://localhost:3000/auth/perfil`;
+- Auth: **Bearer**, com o token de Ana.
+
+Resultado esperado: `200 OK`:
+
+```json
+{
+  "id": 1,
+  "email": "ana@empresa.com",
+  "papel": "gestor"
+}
+```
+
+### 3. Acessar sem token
+
+Duplique a requisição anterior e remova a autenticação. Resultado esperado:
+`401 Unauthorized`, pois nenhuma identidade foi comprovada.
+
+### 4. Aprovar como gestor
+
+Garanta que exista uma solicitação de id `1` ou use o id criado na aula:
+
+- método: `PATCH`;
+- URL: `http://localhost:3000/solicitacoes/1/aprovar`;
+- Auth: **Bearer**, com o token de Ana.
+
+Resultado esperado: `200 OK` com `status` igual a `aprovada`.
+
+### 5. Tentar aprovar como solicitante
+
+Faça login com `bruno@empresa.com` e senha `123456`. Use o novo token na mesma
+rota. Resultado esperado: `403 Forbidden`: Bruno foi autenticado, mas seu papel
+não permite a operação.
+
+### 6. Testar falhas
+
+- senha incorreta no login: `401 Unauthorized`;
+- token com um caractere alterado: `401 Unauthorized`;
+- token usado depois da expiração: `401 Unauthorized`.
+
+Não registre tokens válidos em commits, prints ou evidências entregues.
 
 ## Matriz mínima de testes
 
 | Cenário | Resultado esperado |
 |---|---|
-| login válido | `201` ou `200` com token, conforme contrato adotado |
+| login válido | `201` com `accessToken` |
 | senha inválida | `401` |
-| rota protegida sem token | `401` |
-| token adulterado | `401` |
-| token expirado | `401` |
-| papel permitido | operação executada |
-| papel não permitido | `403` |
-| retorno de usuário | não contém senha nem hash |
+| perfil sem token | `401` |
+| perfil com token válido | `200`, sem senha ou hash |
+| token adulterado ou expirado | `401` |
+| aprovação por gestor | `200` |
+| aprovação por solicitante | `403` |
 
-## Teste manual do fluxo
+## Conceitos consolidados
 
-```bash
-curl -i -X POST http://localhost:3000/auth/login \
-  -H 'Content-Type: application/json' \
-  -d '{"email":"ana@empresa.com","senha":"123456"}'
-```
+### `401` e `403`
 
-Copie apenas o token necessário para o teste local:
+| Status | Significado prático | Exemplo |
+|---|---|---|
+| `401 Unauthorized` | identidade não comprovada | token ausente, inválido ou expirado |
+| `403 Forbidden` | identidade comprovada, sem permissão | solicitante tenta aprovar |
 
-```bash
-curl -i -X PATCH http://localhost:3000/solicitacoes/1/aprovar \
-  -H 'Authorization: Bearer SEU_TOKEN'
-```
+### JWT não é uma sessão completa
 
-Não inclua tokens válidos nas evidências versionadas.
+O token representa a identidade por um período, mas logout, revogação,
+renovação e mudanças de papel exigem decisões adicionais.
 
-## Síntese para a Prática 1
+### Papel não substitui regra de negócio
 
-O encontro 5 será integralmente reservado à atividade. A base técnica necessária
-para sua realização inclui:
+Mesmo um gestor pode ser impedido de aprovar uma solicitação de outra unidade,
+já cancelada, criada por ele próprio ou acima de sua alçada. O guard verifica a
+permissão ampla; o service continua responsável pelas regras contextuais.
 
-- aplicação inicia sem segredo hardcoded;
-- login local está funcional;
-- hashes substituíram senhas em texto puro;
-- JWT é emitido e validado;
-- existe uma rota autenticada;
-- existe uma rota restrita por papel;
-- os principais casos de erro foram testados.
+### Controles complementares
+
+- use HTTPS para transportar senha e token em produção;
+- limite tentativas de login e monitore abuso;
+- configure CORS conforme os clientes autorizados;
+- não registre senha, hash, segredo ou token completo em logs;
+- planeje rotação de segredos e revogação de tokens.
+
+CORS controla navegadores; não substitui autenticação.
 
 ## Erros comuns
 
-### Colocar senha ou dado sensível no JWT
+### Executar `npm install` diretamente no host
 
-O payload pode ser lido; assinatura não significa confidencialidade.
+Use `docker compose run --rm api npm install ...` para manter o ambiente da aula.
 
-### Aceitar algoritmo ou segredo inadequado
+### Esquecer `env_file` no Compose
 
-Validação precisa usar configuração controlada e consistente com o emissor.
+Sem `JWT_SECRET` no processo da API, a inicialização deve falhar.
 
-### Usar token sem expiração
+### Colocar senha ou hash no JWT
 
-Quanto maior a validade, maior a janela de abuso após vazamento.
+O payload é legível. A assinatura garante integridade, não confidencialidade.
 
-### Confiar no papel enviado pelo cliente
+### Usar apenas `RolesGuard`
 
-O papel deve vir de uma identidade verificada e de uma fonte confiável.
+Sem o guard JWT, não existe um principal confiável para autorizar.
 
-### Aplicar apenas `RolesGuard`
+### Confiar no papel enviado no corpo
 
-Sem autenticação anterior, não existe principal confiável para autorizar.
-
-### Registrar o header `Authorization`
-
-Logs podem se tornar uma fonte de vazamento de tokens.
-
-### Tratar JWT como solução completa de sessão
-
-Logout, revogação, renovação, mudanças de papel e comprometimento de conta
-exigem decisões adicionais.
+O papel deve vir de uma identidade verificada pelo servidor.
 
 ## Questões para revisão
 
-1. Por que hash de senha não deve ser reversível?
+1. Por que cada hash da mesma senha pode ser diferente?
 2. Quais são as três partes de um JWT?
-3. Por que o payload do JWT não deve conter informações sensíveis?
-4. Qual a diferença entre `JwtAuthGuard` e `RolesGuard`?
-5. Quando uma regra de autorização deve permanecer no caso de uso?
-6. Que risco existe em versionar `JWT_SECRET`?
-7. Por que CORS não substitui autenticação?
-8. Como expiração e revogação afetam um token roubado?
+3. Por que o payload não deve conter dados sensíveis?
+4. Qual é a diferença entre `JwtAuthGuard` e `RolesGuard`?
+5. Por que a ordem dos guards importa?
+6. Quando uma regra de autorização deve permanecer no service?
+7. Que risco existe em versionar `JWT_SECRET`?
+8. Por que CORS não substitui autenticação?
 
 ## Checklist de aprendizagem
 
-- Sei explicar hash, salt e comparação de senha.
-- Sei explicar o que JWT oferece e o que não oferece.
-- Consigo emitir e validar um token no NestJS.
-- Sei proteger rotas e aplicar autorização por papéis.
-- Distingo autorização ampla de regra contextual do domínio.
-- Sei identificar segredos que não podem ser versionados.
-- Minha API está preparada para a Prática 1.
+- Continuei o mesmo projeto do encontro 3.
+- Instalei dependências e executei a API pelo Docker Compose.
+- Substituí senhas em texto puro por hashes.
+- Emitei e validei um JWT com expiração.
+- Protegi uma rota autenticada.
+- Restringi a aprovação ao papel `gestor`.
+- Testei os principais cenários `200`, `201`, `401` e `403`.
+- Mantive senha, hash, segredo e token fora das respostas e do Git.
 
 ## Resumo final
 
-A autenticação local foi ampliada para um fluxo entre requisições. Senhas são
-verificadas por hash, JWT representa a identidade por tempo limitado e guards
-separam autenticação de autorização. O encontro também mostrou que segurança é
-um conjunto de controles: segredo, transporte, limitação de tentativas, logs,
-validação e regras de negócio continuam necessários.
+O login local do encontro 3 passou a emitir uma identidade assinada e com tempo
+de vida limitado. As senhas agora são verificadas por hash, o JWT protege as
+requisições seguintes e o guard de papéis impede que um solicitante execute uma
+operação de gestor. Todo o ciclo de instalação, execução e teste permanece no
+ambiente Docker usado pelo projeto.
 
 ## Material complementar
 
@@ -509,5 +667,5 @@ validação e regras de negócio continuam necessários.
 - NestJS Authorization: https://docs.nestjs.com/security/authorization
 - NestJS Encryption and Hashing: https://docs.nestjs.com/security/encryption-and-hashing
 - OWASP Password Storage Cheat Sheet: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
-- OWASP JSON Web Token Cheat Sheet: https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html
+- OWASP JSON Web Token Cheat Sheet: https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/06-Session_Management_Testing/10-Testing_JSON_Web_Tokens
 - OWASP API Security: https://owasp.org/API-Security/
