@@ -429,41 +429,6 @@ Salve as duas requisições em uma coleção chamada **Encontro 03**. Antes de
 versionar ou compartilhar a coleção, confirme que ela contém somente as
 credenciais fictícias usadas na aula.
 
-## Exercício de implementação
-
-A implementação completa da autenticação local reúne:
-
-1. módulos `usuarios` e `auth`;
-2. dois usuários em memória com papéis diferentes;
-3. busca por e-mail no serviço de usuários;
-4. validação de credenciais com remoção da senha do retorno;
-5. `LocalStrategy` e `LocalAuthGuard`;
-6. endpoint `POST /auth/login`;
-7. execução da API com `docker compose up --build`;
-8. testes no Thunder Client de usuário válido, senha inválida, conta inexistente
-   e conta inativa;
-9. respostas registradas sem credenciais reais no repositório.
-
-## Análise conceitual
-
-Analise as situações:
-
-- usuário válido faz login: autenticação;
-- gestor acessa rota de aprovação: autenticação e autorização;
-- usuário tem cookie, mas nunca fez login: estado sem identidade comprovada;
-- usuário autenticado tenta administrar contas: possível `403`;
-- senha inválida: `401`.
-
-## Limites da solução atual
-
-- senhas ainda estão em texto puro;
-- usuários ainda estão em memória;
-- o login reconhece a requisição atual, mas não protege requisições futuras;
-- ainda não existe token;
-- o papel está no principal, mas nenhuma regra de autorização foi aplicada.
-
-Esses limites são intencionais e definem o problema do encontro 4.
-
 ## Erros comuns
 
 ### Retornar o objeto completo do usuário
