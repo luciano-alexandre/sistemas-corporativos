@@ -436,9 +436,98 @@ exports: [JwtAuthGuard, RolesGuard],
 
 ## Passo 10 - Proteger a aprovação de solicitações
 
+### 10.1 - Verificar ou criar o módulo de solicitações
+
+O encontro 2 apresentou exemplos de um módulo de solicitações, mas não garantiu
+a criação dos respectivos arquivos. Verifique se o projeto contém:
+
+```text
+src/solicitacoes/
+├── solicitacoes.controller.ts
+├── solicitacoes.module.ts
+└── solicitacoes.service.ts
+```
+
+Se esses arquivos já existirem, preserve as rotas e regras implementadas e siga
+para a seção 10.2. Caso ainda não existam, gere a estrutura pelo contêiner:
+
+```bash
+docker compose run --rm api npx nest generate module solicitacoes
+docker compose run --rm api npx nest generate controller solicitacoes --no-spec
+docker compose run --rm api npx nest generate service solicitacoes --no-spec
+```
+
+O Nest CLI adiciona `SolicitacoesModule` ao `AppModule`. Confirme essa importação
+antes de continuar.
+
+Para a versão mínima do laboratório, use em
+`src/solicitacoes/solicitacoes.service.ts`:
+
+```ts
+import { Injectable, NotFoundException } from '@nestjs/common';
+
+type StatusSolicitacao = 'pendente' | 'aprovada';
+
+type Solicitacao = {
+  id: number;
+  titulo: string;
+  status: StatusSolicitacao;
+};
+
+@Injectable()
+export class SolicitacoesService {
+  private readonly solicitacoes: Solicitacao[] = [
+    { id: 1, titulo: 'Aquisição de notebook', status: 'pendente' },
+  ];
+
+  buscarPorId(id: number) {
+    const solicitacao = this.solicitacoes.find((item) => item.id === id);
+
+    if (!solicitacao) {
+      throw new NotFoundException('Solicitação não encontrada');
+    }
+
+    return solicitacao;
+  }
+
+  aprovar(id: number) {
+    const solicitacao = this.buscarPorId(id);
+    solicitacao.status = 'aprovada';
+    return solicitacao;
+  }
+}
+```
+
+Use em `src/solicitacoes/solicitacoes.controller.ts`:
+
+```ts
+import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
+import { SolicitacoesService } from './solicitacoes.service';
+
+@Controller('solicitacoes')
+export class SolicitacoesController {
+  constructor(private readonly solicitacoesService: SolicitacoesService) {}
+
+  @Get(':id')
+  buscarPorId(@Param('id', ParseIntPipe) id: number) {
+    return this.solicitacoesService.buscarPorId(id);
+  }
+}
+```
+
+Esses dados permanecem em memória porque a persistência será introduzida nos
+encontros seguintes.
+
+### 10.2 - Importar o módulo de autenticação
+
 No `SolicitacoesModule`, importe `AuthModule`:
 
 ```ts
+import { Module } from '@nestjs/common';
+import { AuthModule } from '../auth/auth.module';
+import { SolicitacoesController } from './solicitacoes.controller';
+import { SolicitacoesService } from './solicitacoes.service';
+
 @Module({
   imports: [AuthModule],
   controllers: [SolicitacoesController],
@@ -447,7 +536,9 @@ No `SolicitacoesModule`, importe `AuthModule`:
 export class SolicitacoesModule {}
 ```
 
-Acrescente a rota ao `SolicitacoesController` existente:
+### 10.3 - Acrescentar a rota protegida
+
+Acrescente a rota ao `SolicitacoesController`:
 
 ```ts
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -467,7 +558,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 ```
 
-No `SolicitacoesService`, implemente ou adapte:
+No `SolicitacoesService`, implemente ou adapte o método abaixo caso ele ainda
+não tenha sido criado na seção 10.1:
 
 ```ts
 aprovar(id: number) {
