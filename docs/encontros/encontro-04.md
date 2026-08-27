@@ -671,6 +671,29 @@ Não registre tokens válidos em commits, prints ou evidências entregues.
 | aprovação por gestor | `200` |
 | aprovação por solicitante | `403` |
 
+## Exercício 
+
+Amplie a matriz de acesso da API sem alterar a regra de
+aprovação já implementada.
+
+1. Acrescente uma usuária ativa chamada `Carla`, com papel `auditor`, senha
+   didática `123456` armazenada somente como hash e um e-mail diferente dos
+   demais.
+2. Proteja a rota `GET /solicitacoes/:id` com JWT e permita a consulta apenas
+   aos papéis `gestor` e `auditor`.
+3. Mantenha `PATCH /solicitacoes/:id/aprovar` acessível exclusivamente ao papel
+   `gestor`.
+4. Execute os casos abaixo e anote, para cada um, qual guard tomou a decisão.
+
+| Caso | Resultado esperado |
+|---|---|
+| consulta sem token | `401 Unauthorized` |
+| consulta com token de Bruno (`solicitante`) | `403 Forbidden` |
+| consulta com token de Carla (`auditor`) | `200 OK` |
+| aprovação com token de Carla (`auditor`) | `403 Forbidden` |
+| aprovação com token de Ana (`gestor`) | `200 OK` |
+
+
 ## Conceitos consolidados
 
 ### `401` e `403`
@@ -742,6 +765,8 @@ O papel deve vir de uma identidade verificada pelo servidor.
 - Emitei e validei um JWT com expiração.
 - Protegi uma rota autenticada.
 - Restringi a aprovação ao papel `gestor`.
+- Pratiquei uma rota aceita por mais de um papel sem ampliar a permissão de
+  aprovação.
 - Testei os principais cenários `200`, `201`, `401` e `403`.
 - Mantive senha, hash, segredo e token fora das respostas e do Git.
 
