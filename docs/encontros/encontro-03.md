@@ -353,7 +353,12 @@ requisição. Se a autenticação falhar, o controller não será executado.
 
 ## Passo 6 — Montar os módulos
 
+Crie ou substitua `src/usuarios/usuarios.module.ts` por:
+
 ```ts
+import { Module } from '@nestjs/common';
+import { UsuariosService } from './usuarios.service';
+
 @Module({
   providers: [UsuariosService],
   exports: [UsuariosService],
@@ -361,7 +366,20 @@ requisição. Se a autenticação falhar, o controller não será executado.
 export class UsuariosModule {}
 ```
 
+O `UsuariosService` precisa ser exportado porque será injetado no
+`AuthService`, que pertence a outro módulo.
+
+Crie ou substitua `src/auth/auth.module.ts` por:
+
 ```ts
+import { Module } from '@nestjs/common';
+import { PassportModule } from '@nestjs/passport';
+import { UsuariosModule } from '../usuarios/usuarios.module';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
+import { LocalAuthGuard } from './guards/local-auth.guard';
+import { LocalStrategy } from './strategies/local.strategy';
+
 @Module({
   imports: [UsuariosModule, PassportModule],
   controllers: [AuthController],
@@ -370,7 +388,24 @@ export class UsuariosModule {}
 export class AuthModule {}
 ```
 
-Importe `AuthModule` no módulo principal da aplicação.
+`PassportModule` vem de `@nestjs/passport` e integra as estratégias do Passport
+ao sistema de módulos do NestJS. `UsuariosModule` disponibiliza o
+`UsuariosService` exportado no bloco anterior.
+
+Por fim, importe `AuthModule` em `src/app.module.ts`:
+
+```ts
+import { Module } from '@nestjs/common';
+import { AuthModule } from './auth/auth.module';
+
+@Module({
+  imports: [AuthModule],
+})
+export class AppModule {}
+```
+
+Se o `AppModule` já possuir outros módulos em `imports`, como
+`SolicitacoesModule`, preserve-os e apenas acrescente `AuthModule` à lista.
 
 ## Testes dos endpoints com Thunder Client
 
