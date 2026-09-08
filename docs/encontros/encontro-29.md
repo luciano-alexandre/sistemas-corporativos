@@ -2,14 +2,12 @@
 
 ## Tema
 
-Cache, desempenho e escala.
+Jobs e processamento em segundo plano.
 
 ## Objetivos
 
-- Escolher o que e onde armazenar em cache.
-- Tratar invalidação.
-- Medir antes de otimizar.
-- Estimar capacidade.
+- Modelar tarefas agendadas e workers.
+- Controlar concorrência, reexecução, progresso e falhas.
 
 ## Questão orientadora
 
@@ -26,7 +24,7 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Atividade e saída esperada
 
-Teste de carga básico com análise.
+Worker idempotente funcional.
 
 ## Conexão com o percurso
 

@@ -1,34 +1,30 @@
-# Encontro 40
+# Encontro 40 — Apresentações finais e fechamento
 
 ## Tema
 
-Apresentações finais — sessão 3 e fechamento.
+Apresentações finais — sessão 4 e fechamento da disciplina.
 
 ## Objetivos
 
-- Demonstrar valor, arquitetura e execução.
-- Defender decisões com evidências.
-- Avaliar pares com respeito técnico.
-- Sintetizar aprendizados e possibilidades de evolução.
+- Concluir as demonstrações e defesas dos projetos.
+- Avaliar as decisões com base nas evidências apresentadas.
+- Sintetizar os principais aprendizados da disciplina.
+- Identificar possibilidades de evolução dos projetos.
 
-## Questão orientadora
+## Organização do encontro
 
-Como este tema altera a capacidade de um sistema sustentar processos críticos,
-integrar-se, permanecer seguro e evoluir com a organização?
-
-## Organização sugerida (90 minutos)
-
-1. Preparação da sessão e critérios: 5 min
+1. Preparação da sessão: 5 min
 2. Apresentações e demonstrações: 60 min
-3. Perguntas, defesa e registro avaliativo: 15 min
-4. Retrospectiva e fechamento da disciplina: 10 min
+3. Perguntas e defesa técnica: 15 min
+4. Retrospectiva e fechamento: 10 min
 
-## Atividade e saída esperada
+## Apresentação
 
-Avaliação do projeto final e fechamento.
+Cada equipe deve contextualizar o problema, demonstrar um fluxo ponta a ponta,
+explicar decisões e trade-offs, mostrar evidências de qualidade e operação e
+responder às perguntas. O professor pode solicitar explicações individuais
+sobre qualquer parte da solução.
 
-## Conexão com o percurso
+## Saída esperada
 
-O encontro utiliza a API e os artefatos acumulados como laboratório. Decisões
-devem explicitar contexto, alternativas, consequências e impacto nos requisitos
-funcionais e não funcionais do sistema corporativo.
+Avaliação do projeto final, registro da defesa e encerramento da disciplina.

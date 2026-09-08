@@ -12,8 +12,8 @@ Cada encontro corresponde a duas aulas de 45 minutos.
 | [6](encontros/encontro-06.md) | U1 | PostgreSQL, modelagem relacional e ORM |
 | [7](encontros/encontro-07.md) | U1 | Atividade prática de persistência com PostgreSQL e TypeORM |
 | [8](encontros/encontro-08.md) | U1 | Migrations, transações, concorrência e auditoria |
-| [9](encontros/encontro-09.md) | U1 | **Dia reservado à Prática 2 (10 pontos)** |
-| [10](encontros/encontro-10.md) | U1 | Migrations, seeds e concorrência |
+| [9](encontros/encontro-09.md) | U1 | Migrations, seeds e concorrência |
+| [10](encontros/encontro-10.md) | U1 | **Dia reservado à Prática 2 (10 pontos)** |
 | [11](encontros/encontro-11.md) | U1 | Transações, consistência e auditoria |
 | [12](encontros/encontro-12.md) | U1 | NoSQL e persistência poliglota |
 | [13](encontros/encontro-13.md) | U1 | Contêineres e deploy |
@@ -23,35 +23,35 @@ Cada encontro corresponde a duas aulas de 45 minutos.
 | [17](encontros/encontro-17.md) | U1 | Modelagem de domínio |
 | [18](encontros/encontro-18.md) | U1 | Casos de uso, portas e adaptadores |
 | [19](encontros/encontro-19.md) | U1 | Processos, regras e workflows |
-| [20](encontros/encontro-20.md) | U1 | Sistemas legados e modernização |
-| [21](encontros/encontro-21.md) | U2 | **Dia reservado ao Seminário (20 pontos)** |
-| [22](encontros/encontro-22.md) | U2 | Integração corporativa |
-| [23](encontros/encontro-23.md) | U2 | APIs corporativas |
-| [24](encontros/encontro-24.md) | U2 | Fundamentos de mensageria |
-| [25](encontros/encontro-25.md) | U2 | Eventos, idempotência e outbox |
-| [26](encontros/encontro-26.md) | U2 | Sagas e consistência distribuída |
-| [27](encontros/encontro-27.md) | U2 | Microsserviços com critérios |
-| [28](encontros/encontro-28.md) | U2 | Padrões de resiliência |
-| [29](encontros/encontro-29.md) | U2 | Cache, desempenho e escala |
-| [30](encontros/encontro-30.md) | U2 | Jobs e processamento em segundo plano |
-| [31](encontros/encontro-31.md) | U2 | CI/CD e ambientes |
-| [32](encontros/encontro-32.md) | U2 | IAM, OAuth 2.0, OIDC e SSO |
-| [33](encontros/encontro-33.md) | U2 | LGPD e governança de dados |
-| [34](encontros/encontro-34.md) | U2 | Seminários técnicos |
-| [35](encontros/encontro-35.md) | U2 | Projeto: arquitetura, segurança e dados |
+| [20](encontros/encontro-20.md) | U1 | **Dia reservado ao Seminário (20 pontos)** |
+| [21](encontros/encontro-21.md) | U2 | Integração corporativa |
+| [22](encontros/encontro-22.md) | U2 | APIs corporativas |
+| [23](encontros/encontro-23.md) | U2 | Fundamentos de mensageria |
+| [24](encontros/encontro-24.md) | U2 | Eventos, idempotência e outbox |
+| [25](encontros/encontro-25.md) | U2 | Sagas e consistência distribuída |
+| [26](encontros/encontro-26.md) | U2 | Microsserviços com critérios |
+| [27](encontros/encontro-27.md) | U2 | Padrões de resiliência |
+| [28](encontros/encontro-28.md) | U2 | Cache, desempenho e escala |
+| [29](encontros/encontro-29.md) | U2 | Jobs e processamento em segundo plano |
+| [30](encontros/encontro-30.md) | U2 | CI/CD e ambientes |
+| [31](encontros/encontro-31.md) | U2 | IAM, OAuth 2.0, OIDC e SSO |
+| [32](encontros/encontro-32.md) | U2 | LGPD e governança de dados |
+| [33](encontros/encontro-33.md) | U2 | Definição do projeto final: problema, escopo, backlog e arquitetura |
+| [34](encontros/encontro-34.md) | U2 | Desenvolvimento orientado e revisão técnica do projeto |
+| [35](encontros/encontro-35.md) | U2 | Acompanhamento do projeto |
 | [36](encontros/encontro-36.md) | U2 | Acompanhamento do projeto |
-| [37](encontros/encontro-37.md) | U2 | Acompanhamento do projeto |
-| [38](encontros/encontro-38.md) | U2 | Apresentações finais — sessão 1 |
-| [39](encontros/encontro-39.md) | U2 | Apresentações finais — sessão 2 |
-| [40](encontros/encontro-40.md) | U2 | Apresentações finais — sessão 3 e fechamento |
+| [37](encontros/encontro-37.md) | U2 | Apresentações finais — sessão 1 |
+| [38](encontros/encontro-38.md) | U2 | Apresentações finais — sessão 2 |
+| [39](encontros/encontro-39.md) | U2 | Apresentações finais — sessão 3 |
+| [40](encontros/encontro-40.md) | U2 | Apresentações finais — sessão 4 e fechamento |
 
 ## Marcos de avaliação
 
-- 30 pontos em práticas: encontros 5, 9 e 14, integralmente reservados;
-- 20 pontos em seminário: encontro 21, integralmente reservado;
-- 50 pontos em projeto final: desenvolvimento até o encontro 37 e
-  apresentações nos encontros 38–40.
+- 30 pontos em práticas: encontros 5, 10 e 14, integralmente reservados;
+- 20 pontos em seminário: encontro 20, integralmente reservado;
+- 50 pontos em projeto final: desenvolvimento até o encontro 36 e
+  apresentações nos encontros 37–40.
 
-Os encontros 36 e 37 correspondem à semana imediatamente anterior às
+Os encontros 35 e 36 correspondem à semana imediatamente anterior às
 apresentações e são destinados somente ao acompanhamento dos projetos, sem
 conteúdo temático novo.

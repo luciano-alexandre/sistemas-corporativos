@@ -13,7 +13,7 @@ Migrations, transações, concorrência e trilha de auditoria com TypeORM.
 - Detectar atualizações concorrentes com controle otimista.
 - Diferenciar log técnico de trilha de auditoria.
 - Testar sucesso, conflito, negação e rollback.
-- Preparar a Prática 2 do encontro 09.
+- Preparar a Prática 2 do encontro 10.
 
 ## Ponto de partida
 
@@ -386,7 +386,7 @@ não a entregue no código final.
 | token ausente ou inválido | `401` | nenhuma alteração |
 | falha entre as escritas | `500` | rollback das operações |
 
-## Exercício preparatório para o encontro 09
+## Exercício preparatório para o encontro 10
 
 Implemente `PATCH /solicitacoes/:id/cancelar` com os requisitos:
 
@@ -452,7 +452,7 @@ integridade, retenção e minimização.
 O schema passou a evoluir por migrations. A aprovação tornou-se atômica:
 altera o estado e registra auditoria ou não confirma nenhuma escrita. O
 controle otimista impede que uma decisão sobrescreva silenciosamente outra.
-Esses elementos formam a base da Prática 2 do encontro 09.
+Esses elementos formam a base da Prática 2 do encontro 10.
 
 ## Material complementar
 

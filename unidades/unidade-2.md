@@ -13,6 +13,6 @@
 
 ## Produtos
 
-Seminário, pipeline, evidências operacionais e projeto final. Os encontros 36 e
-37 são reservados ao acompanhamento das equipes, e os encontros 38–40 às
+Seminário, pipeline, evidências operacionais e projeto final. Os encontros 35 e
+36 são reservados ao acompanhamento das equipes, e os encontros 37–40 às
 apresentações.

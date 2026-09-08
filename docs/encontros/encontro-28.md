@@ -2,12 +2,14 @@
 
 ## Tema
 
-Padrões de resiliência.
+Cache, desempenho e escala.
 
 ## Objetivos
 
-- Aplicar timeout, retry com backoff, circuit breaker e bulkhead.
-- Impedir tempestade de repetição.
+- Escolher o que e onde armazenar em cache.
+- Tratar invalidação.
+- Medir antes de otimizar.
+- Estimar capacidade.
 
 ## Questão orientadora
 
@@ -24,7 +26,7 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Atividade e saída esperada
 
-Experimento controlado de indisponibilidade.
+Teste de carga básico com análise.
 
 ## Conexão com o percurso
 

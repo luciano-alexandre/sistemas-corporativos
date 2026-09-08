@@ -7,8 +7,7 @@ na semana anterior às apresentações finais.
 
 ## Atividades
 
-- Atendimento por equipe e remoção de impedimentos.
-- Revisão da execução, dos testes e das evidências.
-- Verificação de documentação e roteiro da demonstração.
-- Registro das pendências para a versão final.
-
+- Conferência das pendências do encontro anterior.
+- Homologação do fluxo que será demonstrado.
+- Ensaio da apresentação e da defesa técnica.
+- Orientação final sem introdução de novos requisitos.

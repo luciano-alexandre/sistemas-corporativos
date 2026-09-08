@@ -2,13 +2,13 @@
 
 ## Tema
 
-CI/CD e ambientes.
+IAM, OAuth 2.0, OIDC e SSO.
 
 ## Objetivos
 
-- Automatizar lint, testes, build e imagem.
-- Definir quality gates.
-- Promover artefatos entre ambientes.
+- Distinguir autorização delegada, identidade e sessão.
+- Reconhecer fluxos e ameaças.
+- Integrar provedor de identidade conceitualmente.
 
 ## Questão orientadora
 
@@ -25,7 +25,7 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Atividade e saída esperada
 
-Pipeline executado no repositório.
+Diagrama de sequência de login corporativo.
 
 ## Conexão com o percurso
 

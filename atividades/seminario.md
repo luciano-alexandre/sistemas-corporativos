@@ -7,7 +7,8 @@ conceito, contexto, implementação, custo e risco.
 
 ## Temas sugeridos
 
-- modernização de legado e padrão strangler;
+- sistemas legados e modernização: reescrita, encapsulamento e padrão
+  strangler;
 - monólito modular versus microsserviços;
 - integração orientada a eventos e outbox;
 - SSO, OAuth 2.0 e OpenID Connect;
@@ -22,4 +23,3 @@ slides, referências (ao menos três fontes técnicas confiáveis) e uma página
 síntese, estudo de caso, benefícios, limitações e recomendação contextualizada.
 
 Consulte a rubrica em `docs/avaliacao.md`.
-

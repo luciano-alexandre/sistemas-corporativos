@@ -1,15 +1,15 @@
-# Encontro 34
+# Encontro 34 — Desenvolvimento e revisão do projeto
 
 ## Tema
 
-Seminários técnicos.
+Desenvolvimento orientado: arquitetura, segurança e dados.
 
 ## Objetivos
 
-- Comunicar um estudo fundamentado.
-- Relacionar padrões a casos.
-- Analisar trade-offs.
-- Responder criticamente.
+- Revisar limites, contratos, modelo, ameaças, transações e riscos.
+- Priorizar correções relevantes.
+- Implementar uma parte verificável do fluxo principal.
+- Preparar o projeto para os encontros de acompanhamento.
 
 ## Questão orientadora
 
@@ -26,11 +26,10 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Atividade e saída esperada
 
-Apresentação do seminário (20 pontos).
+Checkpoint técnico com uma melhoria implementada, testada e versionada.
 
 ## Conexão com o percurso
 
 O encontro utiliza a API e os artefatos acumulados como laboratório. Decisões
 devem explicitar contexto, alternativas, consequências e impacto nos requisitos
 funcionais e não funcionais do sistema corporativo.
-

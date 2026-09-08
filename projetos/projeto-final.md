@@ -22,17 +22,17 @@ gestão acadêmica ou outro domínio aprovado pelo professor.
 
 ## Marcos
 
-- encontro 35: problema, escopo, equipe, backlog, arquitetura inicial e revisão
-  técnica;
-- encontros 36 e 37: acompanhamento das equipes, sem conteúdo novo;
-- encontros 38–40: apresentações e defesa.
+- encontro 33: problema, escopo, equipe, backlog e arquitetura inicial;
+- encontro 34: desenvolvimento orientado e revisão técnica;
+- encontros 35 e 36: acompanhamento das equipes, sem conteúdo novo;
+- encontros 37–40: apresentações e defesa.
 
 ## Apresentação
 
 Cada equipe deve contextualizar o problema, demonstrar um fluxo ponta a ponta,
 explicar duas decisões e seus trade-offs, mostrar evidências de qualidade e
-operação e responder às perguntas. Os encontros 36 e 37 formam a semana de
-acompanhamento imediatamente anterior. Os três últimos encontros ficam
+operação e responder às perguntas. Os encontros 35 e 36 formam a semana de
+acompanhamento imediatamente anterior. Os quatro últimos encontros ficam
 exclusivamente reservados às apresentações.
 
 Consulte os critérios e pesos em `docs/avaliacao.md`.

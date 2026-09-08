@@ -31,8 +31,8 @@ práticas de entrega.
   fundamentos arquiteturais e modelagem do domínio.
 - **Unidade 2 (encontros 21–40):** integração, eventos, mensageria,
   confiabilidade, observabilidade, DevOps, governança e projeto final. Os
-  encontros 36–37 são reservados ao acompanhamento dos projetos e os encontros
-  38–40 são exclusivos para apresentações.
+  encontros 35–36 são reservados ao acompanhamento dos projetos e os encontros
+  37–40 são exclusivos para apresentações.
 
 ## Avaliação
 

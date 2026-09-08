@@ -1,34 +1,14 @@
-# Encontro 35
+# Encontro 35 — Acompanhamento do Projeto
 
-## Tema
+## Reserva do encontro
 
-Projeto: arquitetura, segurança e dados.
+Encontro sem tema e sem conteúdo novo, reservado ao acompanhamento das equipes
+na semana anterior às apresentações finais.
 
-## Objetivos
+## Atividades
 
-- Revisar limites, contratos, modelo, ameaças, transações e riscos.
-- Priorizar correções relevantes.
-
-## Questão orientadora
-
-Como este tema altera a capacidade de um sistema sustentar processos críticos,
-integrar-se, permanecer seguro e evoluir com a organização?
-
-## Organização sugerida (90 minutos)
-
-1. Retomada e contextualização: 10 min
-2. Conceitos e estudo de caso: 20 min
-3. Demonstração ou modelagem: 20 min
-4. Atividade prática, discussão ou projeto: 30 min
-5. Evidência e fechamento: 10 min
-
-## Atividade e saída esperada
-
-Checkpoint técnico do projeto.
-
-## Conexão com o percurso
-
-O encontro utiliza a API e os artefatos acumulados como laboratório. Decisões
-devem explicitar contexto, alternativas, consequências e impacto nos requisitos
-funcionais e não funcionais do sistema corporativo.
+- Atendimento por equipe e remoção de impedimentos.
+- Revisão da execução, dos testes e das evidências.
+- Verificação de documentação e roteiro da demonstração.
+- Registro das pendências para a versão final.
 

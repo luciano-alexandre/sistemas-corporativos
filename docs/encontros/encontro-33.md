@@ -1,34 +1,51 @@
-# Encontro 33
+# Encontro 33 — Definição do projeto final
 
 ## Tema
 
-LGPD e governança de dados.
+Problema, escopo, backlog e arquitetura inicial do projeto final.
 
 ## Objetivos
 
-- Mapear finalidade, base, acesso, retenção e descarte.
-- Aplicar minimização, auditoria e privacy by design.
+- Definir um processo organizacional realista e seus participantes.
+- Delimitar o problema e o que não fará parte da primeira versão.
+- Identificar o fluxo principal, regras e requisitos não funcionais.
+- Organizar um backlog inicial priorizado.
+- Desenhar a arquitetura inicial e registrar riscos.
+- Planejar uma demonstração verificável para a entrega final.
 
-## Questão orientadora
+## Ponto de partida
 
-Como este tema altera a capacidade de um sistema sustentar processos críticos,
-integrar-se, permanecer seguro e evoluir com a organização?
+Consulte os requisitos em `projetos/projeto-final.md` e a rubrica em
+`docs/avaliacao.md`. A proposta deve aproveitar o percurso da disciplina:
+segurança, persistência, integração, confiabilidade, testes e operação.
 
-## Organização sugerida (90 minutos)
+## Atividade
 
-1. Retomada e contextualização: 10 min
-2. Conceitos e estudo de caso: 20 min
-3. Demonstração ou modelagem: 20 min
-4. Atividade prática, discussão ou projeto: 30 min
-5. Evidência e fechamento: 10 min
+Cada equipe deve produzir uma proposta curta contendo:
 
-## Atividade e saída esperada
+1. nome provisório e problema organizacional;
+2. pessoas ou setores envolvidos;
+3. fluxo principal do início ao resultado;
+4. ao menos três regras de negócio;
+5. escopo da primeira versão e itens deixados de fora;
+6. backlog inicial ordenado por valor e risco;
+7. diagrama C4 de contexto e contêineres;
+8. tecnologias escolhidas e uma justificativa breve;
+9. principais riscos técnicos e de prazo;
+10. roteiro preliminar da demonstração final.
 
-Matriz de dados pessoais e controles.
+## Perguntas orientadoras
 
-## Conexão com o percurso
+- Quem recebe valor quando o processo funciona?
+- Que decisão ou estado precisa ser persistido?
+- Quais ações exigem autenticação e autorização?
+- Onde uma transação ou auditoria é necessária?
+- Qual integração externa ou assíncrona será demonstrada?
+- Como a equipe provará que o sistema funciona e pode ser operado?
 
-O encontro utiliza a API e os artefatos acumulados como laboratório. Decisões
-devem explicitar contexto, alternativas, consequências e impacto nos requisitos
-funcionais e não funcionais do sistema corporativo.
+## Saída esperada
+
+Um documento versionado com escopo, backlog, diagramas e riscos. A proposta
+será revisada tecnicamente no encontro 34 e orientará o acompanhamento dos
+encontros 35 e 36.
 

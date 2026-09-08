@@ -2,13 +2,12 @@
 
 ## Tema
 
-IAM, OAuth 2.0, OIDC e SSO.
+LGPD e governança de dados.
 
 ## Objetivos
 
-- Distinguir autorização delegada, identidade e sessão.
-- Reconhecer fluxos e ameaças.
-- Integrar provedor de identidade conceitualmente.
+- Mapear finalidade, base, acesso, retenção e descarte.
+- Aplicar minimização, auditoria e privacy by design.
 
 ## Questão orientadora
 
@@ -25,7 +24,7 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Atividade e saída esperada
 
-Diagrama de sequência de login corporativo.
+Matriz de dados pessoais e controles.
 
 ## Conexão com o percurso
 

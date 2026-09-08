@@ -2,13 +2,12 @@
 
 ## Tema
 
-Microsserviços com critérios.
+Padrões de resiliência.
 
 ## Objetivos
 
-- Avaliar autonomia, limites e comunicação.
-- Reconhecer custos de dados distribuídos e operação.
-- Evitar decomposição prematura.
+- Aplicar timeout, retry com backoff, circuit breaker e bulkhead.
+- Impedir tempestade de repetição.
 
 ## Questão orientadora
 
@@ -25,7 +24,7 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Atividade e saída esperada
 
-Registro argumentado: monólito modular ou microsserviços.
+Experimento controlado de indisponibilidade.
 
 ## Conexão com o percurso
 
