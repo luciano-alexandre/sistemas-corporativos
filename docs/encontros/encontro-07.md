@@ -4,7 +4,7 @@
 
 Modelagem relacional e consultas com PostgreSQL, TypeORM e NestJS.
 
-## Objetivos
+## O que vamos revisar
 
 - Fixar o conteúdo desenvolvido no encontro 06.
 - Alterar o modelo sem retornar ao armazenamento em memória.
@@ -12,20 +12,11 @@ Modelagem relacional e consultas com PostgreSQL, TypeORM e NestJS.
 - Usar o repositório TypeORM para inserir, filtrar e consultar registros.
 - Preservar autenticação e autorização anteriores.
 - Verificar a persistência depois do reinício da API.
-- Explicar as responsabilidades de DTO, entidade, repositório e service.
+- Relembrar as responsabilidades de DTO, entidade, repositório e service.
 
-## Organização sugerida (90 minutos)
+## Antes de começar
 
-1. Preparação e teste do ponto de partida: 10 min
-2. Modelagem e alteração da entidade: 20 min
-3. Implementação dos DTOs, service e controller: 35 min
-4. Execução dos testes: 15 min
-5. Evidências e retrospectiva: 10 min
-
-## Modalidade e ponto de partida
-
-A atividade é individual e utiliza o projeto do encontro 06. Antes de
-começar, confirme que:
+Continue no projeto do encontro 06 e confirme que:
 
 - `docker compose up --build` inicia API e PostgreSQL;
 - o login devolve um JWT;
@@ -36,28 +27,14 @@ começar, confirme que:
 Nesta atividade, `synchronize: true` permanece apenas no ambiente didático.
 Migrations e evolução segura do schema serão estudadas no encontro 08.
 
-## Situação-problema
+## A atividade
 
 A equipe de compras passou a receber muitas solicitações. Apenas título e
 status não bastam para organizar o trabalho. Cada solicitação deve informar o
 centro de custo e sua prioridade. A listagem também deve aceitar filtros sem
 carregar todos os registros para um array na aplicação.
 
-## Resultado esperado
-
-```mermaid
-flowchart LR
-    C[Cliente com JWT] --> CT[Controller]
-    CT --> S[Service]
-    S --> R[Repository TypeORM]
-    R --> B[(PostgreSQL)]
-    C -->|GET com filtros| CT
-    R -->|consulta filtrada| B
-```
-
-## Requisitos obrigatórios
-
-### 1. Ampliar o modelo persistente
+### Ampliar o modelo
 
 Acrescente à entidade `Solicitacao`:
 
@@ -70,7 +47,7 @@ Use os nomes `centro_custo` e `prioridade` no PostgreSQL. Preserve id, título,
 status, versão e datas. Se o exercício do encontro 06 já acrescentou
 `centroCusto`, revise o mapeamento e implemente somente o que falta.
 
-### 2. Validar a criação
+### Validar a criação
 
 Atualize `CriarSolicitacaoDto` para aceitar:
 
@@ -92,7 +69,7 @@ Regras:
 O service deve copiar somente os campos validados para a entidade e salvá-la
 pelo repositório. Não use o corpo completo nem restaure o array em memória.
 
-### 3. Filtrar no banco
+### Filtrar no banco
 
 Adapte a rota:
 
@@ -123,7 +100,7 @@ return this.repository.find({
 
 O trecho orienta a consulta; ajuste tipos e imports ao seu projeto.
 
-### 4. Preservar o comportamento existente
+### Manter o que já funciona
 
 - criação, listagem e consulta por id continuam exigindo JWT;
 - aprovação continua exclusiva do papel `gestor`;
@@ -131,7 +108,7 @@ O trecho orienta a consulta; ajuste tipos e imports ao seu projeto.
 - id inexistente continua produzindo `404 Not Found`;
 - entrada inválida produz `400 Bad Request` sem gravar dados.
 
-### 5. Confirmar persistência
+### Confirmar a persistência
 
 Depois de criar os registros, reinicie somente a API:
 
@@ -142,7 +119,7 @@ docker compose start api
 
 Os dados e os novos campos devem continuar disponíveis.
 
-## Roteiro de implementação
+## Passos
 
 1. Teste a aplicação antes das alterações.
 2. Modifique `solicitacao.entity.ts`.
@@ -165,7 +142,7 @@ Os dados e os novos campos devem continuar disponíveis.
 Crie os registros pela API, pois isso também verifica DTO, controller,
 service e repositório.
 
-## Matriz de testes
+## Testes
 
 | Caso | Requisição | Resultado esperado |
 |---:|---|---|
@@ -193,47 +170,16 @@ docker compose exec db psql -U app -d solicitacoes -c "SELECT id, titulo, centro
 Compare o SQL com a resposta da API. SQL é evidência da persistência, mas os
 clientes do sistema devem passar pelas regras da API.
 
-## Evidência esperada
+## Dicas
 
-Produza um commit com a mensagem sugerida:
+- Faça os filtros no banco, e não com `Array.filter`.
+- Passe para `save` apenas os campos validados.
+- Preserve os guards ao alterar o controller.
+- Valide também os filtros opcionais.
+- Para testar a persistência, reinicie apenas a API. O comando
+  `docker compose down --volumes` apagaria o banco local.
 
-```text
-feat: classificar e filtrar solicitacoes persistidas
-```
-
-Registre uma criação válida, uma entrada rejeitada, dois filtros combinados,
-a consulta depois do reinício e a saída do `psql`. Não registre tokens ou
-credenciais.
-
-## Questões para retrospectiva
-
-1. Por que validar `prioridade` se o TypeScript já declara seu tipo?
-2. Qual é a diferença entre `repository.create` e `repository.save`?
-3. Por que executar os filtros no banco?
-4. O que seria perdido se a aplicação ainda utilizasse um array?
-5. Por que o volume não substitui um backup?
-6. Qual limitação permanece com `synchronize` habilitado?
-
-## Critérios de conclusão
-
-| Critério | Evidência |
-|---|---|
-| modelo ampliado | novas colunas no PostgreSQL |
-| contrato validado | entradas inválidas retornam `400` |
-| uso correto do ORM | criação e filtros usam o repositório |
-| segurança preservada | rotas continuam protegidas |
-| persistência confirmada | registros sobrevivem ao reinício |
-| compreensão | respostas da retrospectiva coerentes |
-
-## Erros comuns
-
-- filtrar com `Array.filter` em vez de consultar o banco;
-- entregar o corpo inteiro a `save`, permitindo campos indevidos;
-- remover guards ao alterar o controller;
-- esquecer a validação dos filtros opcionais;
-- executar `docker compose down --volumes` ao testar persistência.
-
-## Checklist do estudante
+## Confira o resultado
 
 - Ampliei a entidade sem recriar o projeto.
 - Atualizei os DTOs e rejeitei valores inválidos.
@@ -243,12 +189,4 @@ credenciais.
 - Testei todos os cenários da matriz.
 - Confirmei os registros com `psql`.
 - Reiniciei a API e verifiquei a persistência.
-- Registrei evidências sem tokens ou segredos.
-
-## Resumo final
-
-A atividade ampliou o exemplo do encontro 06 com classificação e consultas
-filtradas. DTO, entidade, service e repositório mantiveram responsabilidades
-diferentes, enquanto PostgreSQL preservou o estado fora do processo da API. No
-encontro 08, o schema passará a evoluir por migrations, com transações,
-concorrência e auditoria.
+- Não coloquei tokens ou segredos nos arquivos do projeto.
