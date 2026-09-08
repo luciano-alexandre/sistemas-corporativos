@@ -8,15 +8,15 @@ Cada encontro corresponde a duas aulas de 45 minutos.
 | [2](encontros/encontro-02.md) | U1 | Síntese de Backend, encontros 1–15: HTTP, NestJS, validação, upload e sessão |
 | [3](encontros/encontro-03.md) | U1 | Autenticação local e autorização |
 | [4](encontros/encontro-04.md) | U1 | JWT, guards, RBAC, hash de senha e segurança de APIs |
-| [5](encontros/encontro-05.md) | U1 | **Dia reservado à Prática 1 (10 pontos)** |
-| [6](encontros/encontro-06.md) | U1 | PostgreSQL, modelagem relacional e ORM |
-| [7](encontros/encontro-07.md) | U1 | Atividade prática de persistência com PostgreSQL e TypeORM |
-| [8](encontros/encontro-08.md) | U1 | Migrations, transações, concorrência e auditoria |
-| [9](encontros/encontro-09.md) | U1 | Migrations, seeds e concorrência |
-| [10](encontros/encontro-10.md) | U1 | **Dia reservado à Prática 2 (10 pontos)** |
-| [11](encontros/encontro-11.md) | U1 | Transações, consistência e auditoria |
-| [12](encontros/encontro-12.md) | U1 | NoSQL e persistência poliglota |
-| [13](encontros/encontro-13.md) | U1 | Contêineres e deploy |
+| 5 | U1 | Continuação do encontro 04: JWT, guards, RBAC, hash de senha e segurança de APIs |
+| [6](encontros/encontro-06.md) | U1 | **Dia reservado à Prática 1 (10 pontos)** |
+| [7](encontros/encontro-07.md) | U1 | PostgreSQL, modelagem relacional e ORM |
+| [8](encontros/encontro-08.md) | U1 | Atividade prática de persistência com PostgreSQL e TypeORM |
+| [9](encontros/encontro-09.md) | U1 | Migrations, transações, concorrência e auditoria |
+| [10](encontros/encontro-10.md) | U1 | Migrations, seeds e concorrência |
+| [11](encontros/encontro-11.md) | U1 | **Dia reservado à Prática 2 (10 pontos)** |
+| [12](encontros/encontro-12.md) | U1 | Transações, consistência e auditoria |
+| [13](encontros/encontro-13.md) | U1 | NoSQL e persistência poliglota |
 | [14](encontros/encontro-14.md) | U1 | **Dia reservado à Prática 3 (10 pontos)** |
 | [15](encontros/encontro-15.md) | U1 | Arquiteturas limpa e hexagonal |
 | [16](encontros/encontro-16.md) | U1 | Monólito modular e ADRs |
@@ -47,7 +47,7 @@ Cada encontro corresponde a duas aulas de 45 minutos.
 
 ## Marcos de avaliação
 
-- 30 pontos em práticas: encontros 5, 10 e 14, integralmente reservados;
+- 30 pontos em práticas: encontros 6, 11 e 14, integralmente reservados;
 - 20 pontos em seminário: encontro 20, integralmente reservado;
 - 50 pontos em projeto final: desenvolvimento até o encontro 36 e
   apresentações nos encontros 37–40.

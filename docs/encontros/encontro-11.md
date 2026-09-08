@@ -1,35 +1,16 @@
-# Encontro 11
+# Encontro 11 — Prática 2
 
-## Tema
+## Reserva do encontro
 
-Transações, consistência e auditoria.
+Encontro integralmente reservado à realização da **Prática 2 — Domínio,
+transação e auditoria**, no valor de 10 pontos.
 
-## Objetivos
-
-- Definir fronteiras transacionais.
-- Comparar níveis de isolamento.
-- Produzir trilha de auditoria confiável.
-
-## Questão orientadora
-
-Como este tema altera a capacidade de um sistema sustentar processos críticos,
-integrar-se, permanecer seguro e evoluir com a organização?
+Não haverá exposição de conteúdo novo neste dia. As orientações, os requisitos
+e a rubrica estão em `praticas/atividades-praticas.md` e `docs/avaliacao.md`.
 
 ## Organização sugerida (90 minutos)
 
-1. Retomada e contextualização: 10 min
-2. Conceitos e estudo de caso: 20 min
-3. Demonstração ou modelagem: 20 min
-4. Atividade prática, discussão ou projeto: 30 min
-5. Evidência e fechamento: 10 min
-
-## Atividade e saída esperada
-
-Incremento inicial da Prática 2.
-
-## Conexão com o percurso
-
-O encontro utiliza a API e os artefatos acumulados como laboratório. Decisões
-devem explicitar contexto, alternativas, consequências e impacto nos requisitos
-funcionais e não funcionais do sistema corporativo.
+1. Apresentação das regras e preparação do ambiente: 10 min
+2. Realização da atividade: 65 min
+3. Entrega, conferência das evidências e encerramento: 15 min
 

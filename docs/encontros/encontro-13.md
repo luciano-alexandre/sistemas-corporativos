@@ -2,13 +2,13 @@
 
 ## Tema
 
-Contêineres e deploy.
+NoSQL e persistência poliglota.
 
 ## Objetivos
 
-- Empacotar aplicação e dependências.
-- Diferenciar build e runtime.
-- Configurar health check e ambiente de implantação.
+- Comparar modelos relacional e documental.
+- Evitar adoção por moda.
+- Escolher armazenamento segundo padrões de acesso.
 
 ## Questão orientadora
 
@@ -25,7 +25,7 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Atividade e saída esperada
 
-Aplicação executada por Docker Compose.
+Entrega e defesa da Prática 2 (10 pontos).
 
 ## Conexão com o percurso
 

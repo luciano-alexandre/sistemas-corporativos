@@ -12,7 +12,7 @@ JWT, hash de senha e autorização por papéis em NestJS com execução via Dock
 - Emitir e validar um JWT após a autenticação local.
 - Implementar autorização por papéis com decorator e guard.
 - Diferenciar, na prática, respostas `401 Unauthorized` e `403 Forbidden`.
-- Preparar a API para a Prática 1 do encontro 5.
+- Preparar a API para a Prática 1 do encontro 6.
 
 ## Ponto de partida
 

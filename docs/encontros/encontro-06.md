@@ -1,459 +1,171 @@
-# Encontro 06
-
-## Tema
-
-PostgreSQL, modelagem relacional e persistência com TypeORM no NestJS.
-
-## Objetivos
-
-- Continuar a API de solicitações dos encontros anteriores.
-- Executar PostgreSQL e API com Docker Compose.
-- Traduzir um modelo de domínio simples para tabela, colunas e restrições.
-- Configurar TypeORM por variáveis de ambiente.
-- Substituir o array em memória por um repositório persistente.
-- Diferenciar entidade, DTO, repositório e service.
-- Confirmar que os dados permanecem depois do reinício da API.
-- Preparar migrations, transações e auditoria do encontro 07.
-
-## Ponto de partida
-
-Use o projeto desenvolvido nos encontros 03 a 05. Ele deve possuir
-autenticação local, JWT, autorização por papéis, o módulo `solicitacoes` e os
-arquivos de Docker. Preserve as rotas e regras de segurança já implementadas.
-
-Neste encontro, somente as solicitações deixarão de usar o array em memória.
-Os usuários podem continuar no `UsuariosService`, mantendo o foco da mudança.
-
-## Resultado esperado
-
-```mermaid
-flowchart LR
-    C[Cliente HTTP] --> CT[SolicitacoesController]
-    CT --> S[SolicitacoesService]
-    S --> R[Repository de Solicitacao]
-    R --> B[(PostgreSQL)]
-```
-
-Ao final, criar e consultar uma solicitação deve produzir operações no
-PostgreSQL, e o registro deve continuar disponível após reiniciar a API.
-
-## Por que trocar o array?
-
-O array ajudou a estudar HTTP e segurança, mas não atende a um processo
-corporativo porque desaparece com o processo, não oferece integridade,
-transações ou coordenação entre escritas concorrentes. Um ORM reduz código
-repetitivo, mas não elimina a necessidade de compreender SQL e modelagem.
-
-## Modelo relacional inicial
-
-| Coluna | Tipo | Restrição | Motivo |
-|---|---|---|---|
-| `id` | inteiro | chave primária gerada | identifica o registro |
-| `titulo` | varchar(150) | obrigatória | descreve a solicitação |
-| `status` | varchar(20) | obrigatória | representa o estado atual |
-| `versao` | inteiro | obrigatória | apoiará o controle de concorrência |
-| `criada_em` | timestamptz | obrigatória | registra a criação |
-| `atualizada_em` | timestamptz | obrigatória | registra a última alteração |
-
-O identificador é uma chave técnica. O título não é uma boa chave: pode
-mudar e duas solicitações podem possuir o mesmo texto.
-
-## Passo 1 — Instalar as dependências
-
-```bash
-docker compose run --rm api npm install @nestjs/typeorm typeorm pg @nestjs/config
-```
-
-- `@nestjs/typeorm` integra o ORM aos módulos do NestJS;
-- `typeorm` realiza o mapeamento e as consultas;
-- `pg` é o driver do PostgreSQL;
-- `@nestjs/config` disponibiliza configurações da aplicação.
-
-## Passo 2 — Acrescentar PostgreSQL ao Compose
-
-Atualize `compose.yaml`, preservando configurações adicionais da sua API:
-
-```yaml
-services:
-  api:
-    build: .
-    ports:
-      - "3000:3000"
-    volumes:
-      - .:/app
-      - node_modules:/app/node_modules
-    env_file:
-      - .env
-    depends_on:
-      db:
-        condition: service_healthy
-    command: npm run start:dev
-
-  db:
-    image: postgres:17-alpine
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-volumes:
-  node_modules:
-  postgres_data:
-```
-
-O volume separa a vida dos dados da vida do contêiner. O `healthcheck` evita
-que a API tente conectar enquanto o banco ainda está inicializando. A senha é
-didática e exclusiva do ambiente local; não seria adequada para produção.
-
-## Passo 3 — Configurar o ambiente
-
-Acrescente ao `.env` local e use chaves equivalentes no `.env.example`:
-
-```dotenv
-DB_HOST=db
-DB_PORT=5432
-DB_NAME=solicitacoes
-DB_USER=app
-DB_PASSWORD=app-local
-```
-
-O `.env` deve continuar ignorado pelo Git. Dentro da rede do Compose,
-`DB_HOST=db` aponta para o serviço do PostgreSQL. `localhost` apontaria para o
-próprio contêiner da API.
-
-## Passo 4 — Criar a entidade
-
-Crie `src/solicitacoes/solicitacao.entity.ts`:
-
-```ts
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-  VersionColumn,
-} from 'typeorm';
-
-export type StatusSolicitacao = 'pendente' | 'aprovada';
-
-@Entity({ name: 'solicitacoes' })
-export class Solicitacao {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column({ type: 'varchar', length: 150 })
-  titulo: string;
-
-  @Column({ type: 'varchar', length: 20, default: 'pendente' })
-  status: StatusSolicitacao;
-
-  @VersionColumn({ name: 'versao' })
-  versao: number;
-
-  @CreateDateColumn({ name: 'criada_em', type: 'timestamptz' })
-  criadaEm: Date;
-
-  @UpdateDateColumn({ name: 'atualizada_em', type: 'timestamptz' })
-  atualizadaEm: Date;
-}
-```
-
-A entidade mapeia objetos e registros; ela não deve conter regras HTTP.
-`VersionColumn` será usada no encontro 07 para detectar estado antigo.
-
-## Passo 5 — Configurar TypeORM
-
-Atualize `src/app.module.ts`, preservando outros módulos:
-
-```ts
-import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from './auth/auth.module';
-import { SolicitacoesModule } from './solicitacoes/solicitacoes.module';
-
-@Module({
-  imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    TypeOrmModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres',
-        host: config.getOrThrow<string>('DB_HOST'),
-        port: Number(config.get('DB_PORT') ?? 5432),
-        database: config.getOrThrow<string>('DB_NAME'),
-        username: config.getOrThrow<string>('DB_USER'),
-        password: config.getOrThrow<string>('DB_PASSWORD'),
-        autoLoadEntities: true,
-        synchronize: true,
-      }),
-    }),
-    AuthModule,
-    SolicitacoesModule,
-  ],
-})
-export class AppModule {}
-```
-
-`synchronize: true` é uma simplificação temporária para observar o
-mapeamento. Não oferece histórico revisável e não deve ser habilitado em
-produção. No encontro 07, ele será substituído por migrations.
-
-## Passo 6 — Registrar o repositório
-
-Substitua `src/solicitacoes/solicitacoes.module.ts` por:
-
-```ts
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from '../auth/auth.module';
-import { Solicitacao } from './solicitacao.entity';
-import { SolicitacoesController } from './solicitacoes.controller';
-import { SolicitacoesService } from './solicitacoes.service';
-
-@Module({
-  imports: [AuthModule, TypeOrmModule.forFeature([Solicitacao])],
-  controllers: [SolicitacoesController],
-  providers: [SolicitacoesService],
-})
-export class SolicitacoesModule {}
-```
-
-`forFeature` torna `Repository<Solicitacao>` injetável neste módulo.
-
-## Passo 7 — Criar o DTO
-
-Crie `src/solicitacoes/dto/criar-solicitacao.dto.ts`:
-
-```ts
-import { IsString, MaxLength, MinLength } from 'class-validator';
-
-export class CriarSolicitacaoDto {
-  @IsString()
-  @MinLength(5)
-  @MaxLength(150)
-  titulo: string;
-}
-```
-
-O DTO protege a entrada HTTP; as restrições do banco protegem o estado
-persistido. As duas camadas são complementares.
-
-## Passo 8 — Substituir o array pelo repositório
-
-Substitua `src/solicitacoes/solicitacoes.service.ts` por:
-
-```ts
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { CriarSolicitacaoDto } from './dto/criar-solicitacao.dto';
-import { Solicitacao } from './solicitacao.entity';
-
-@Injectable()
-export class SolicitacoesService {
-  constructor(
-    @InjectRepository(Solicitacao)
-    private readonly repository: Repository<Solicitacao>,
-  ) {}
-
-  listar() {
-    return this.repository.find({ order: { id: 'ASC' } });
-  }
-
-  async buscarPorId(id: number) {
-    const solicitacao = await this.repository.findOneBy({ id });
-    if (!solicitacao) {
-      throw new NotFoundException('Solicitação não encontrada');
-    }
-    return solicitacao;
-  }
-
-  criar(dto: CriarSolicitacaoDto) {
-    const solicitacao = this.repository.create({
-      titulo: dto.titulo,
-      status: 'pendente',
-    });
-    return this.repository.save(solicitacao);
-  }
-
-  async aprovar(id: number) {
-    const solicitacao = await this.buscarPorId(id);
-    solicitacao.status = 'aprovada';
-    return this.repository.save(solicitacao);
-  }
-}
-```
-
-`create` constrói a entidade; `save` realiza a escrita. O acesso ao banco é
-assíncrono, por isso consultas e alterações passam a devolver promises.
-
-## Passo 9 — Atualizar o controller
-
-Mantenha os guards e papéis anteriores e acrescente criação e listagem:
-
-```ts
-@UseGuards(JwtAuthGuard)
-@Post()
-criar(@Body() dto: CriarSolicitacaoDto) {
-  return this.service.criar(dto);
-}
-
-@UseGuards(JwtAuthGuard)
-@Get()
-listar() {
-  return this.service.listar();
-}
-
-@UseGuards(JwtAuthGuard)
-@Get(':id')
-buscarPorId(@Param('id', ParseIntPipe) id: number) {
-  return this.service.buscarPorId(id);
-}
-
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('gestor')
-@Patch(':id/aprovar')
-aprovar(@Param('id', ParseIntPipe) id: number) {
-  return this.service.aprovar(id);
-}
-```
-
-Importe `Body`, `Get`, `Post`, `CriarSolicitacaoDto` e os demais símbolos que
-ainda não existirem. Se a Prática 1 acrescentou a rota `relatorio`, preserve-a
-e adapte seu cálculo ao repositório. Rotas literais devem aparecer antes de
-`@Get(':id')` para não serem interpretadas como id.
-
-## Passo 10 — Executar e testar
-
-```bash
-docker compose up --build
-```
-
-Faça login e envie o token como **Bearer**.
-
-### Criar
+# Encontro 06 — Prática 1: segurança e controle de acesso
+
+## Informações gerais
+
+- **Valor:** 10 pontos
+- **Duração:** 90 minutos
+- **Modalidade:** individual
+- **Consulta:** permitida aos materiais da disciplina, à documentação oficial e
+  às anotações pessoais
+- **Entrega:** link do repositório GitHub enviado até o final da aula pelo Google
+  Sala de Aula
+- **Ponto de partida:** projeto NestJS desenvolvido nos encontros 3 e 4
+
+A consulta não autoriza comunicação ou compartilhamento de solução
+entre estudantes durante a atividade.
+
+
+## Situação-problema
+
+A API de solicitações passou a atender também a equipe de auditoria. A empresa
+definiu a seguinte matriz de acesso:
+
+| Operação | Solicitante | Gestor | Auditor |
+|---|:---:|:---:|:---:|
+| Consultar o próprio perfil | sim | sim | sim |
+| Aprovar uma solicitação | não | sim | não |
+| Consultar o relatório geral | não | sim | sim |
+
+Sua tarefa é adaptar a API para representar o papel `auditor` e disponibilizar
+um relatório protegido, sem enfraquecer a proteção da aprovação já existente.
+
+## Requisitos obrigatórios
+
+### 1. Usuários identificados pelo estudante
+
+Inclua no serviço de usuários duas contas ativas e personalizadas:
+
+1. **Usuário gestor:** use o seu primeiro nome no campo `nome`, o papel `gestor`
+   e a sua matrícula como senha;
+2. **Usuário auditor:** use o seu último sobrenome no campo `nome`, o papel
+   `auditor` e a sua matrícula escrita em ordem inversa como senha.
+
+Exemplo apenas para esclarecer a regra: se a estudante se chama `Maria Silva` e
+sua matrícula é `20261234`, as senhas de teste serão `20261234` para a conta
+`Maria` e `43216202` para a conta `Silva`. Cada estudante deve usar
+exclusivamente o próprio nome, o próprio sobrenome e a própria matrícula.
+
+Defina e informe no `README.md` os e-mails das duas contas. Eles devem ser
+distintos e coerentes com os nomes utilizados. Nos dados da aplicação, as duas
+senhas devem aparecer **somente como hashes gerados com `bcrypt` e salt**; não é
+permitido armazenar a matrícula ou a matrícula invertida em texto puro no campo
+de senha. O login deve continuar devolvendo um JWT, e nenhuma resposta da API
+pode apresentar a senha ou o hash.
+
+> **Critério obrigatório de identificação:** a atividade não será considerada
+> se as contas não seguirem a estrutura acima, com o primeiro nome, o último
+> sobrenome e a matrícula do próprio estudante. Também não será considerada uma
+> entrega cujos hashes correspondam à matrícula de outro estudante.
+
+### 2. Relatório protegido
+
+Implemente a rota:
 
 ```http
-POST /solicitacoes
-Authorization: Bearer TOKEN
-Content-Type: application/json
+GET /solicitacoes/relatorio
+```
 
+Ela deve:
+
+- exigir um JWT válido;
+- permitir acesso apenas aos papéis `gestor` e `auditor`;
+- devolver status `200` e um objeto com, no mínimo, a quantidade total de
+  solicitações e a quantidade por status;
+- reutilizar o service do módulo de solicitações para calcular os dados.
+
+Exemplo de formato aceito, considerando os dados existentes na aplicação:
+
+```json
 {
-  "titulo": "Aquisição de monitor para desenvolvimento"
+  "total": 3,
+  "porStatus": {
+    "pendente": 2,
+    "aprovada": 1
+  }
 }
 ```
 
-Resultado esperado: `201 Created`, com id, status `pendente`, versão e datas.
+Os números do exemplo não são obrigatórios. Eles devem refletir o estado atual
+da aplicação.
 
-### Consultar e validar
 
-- `GET /solicitacoes`: `200 OK` com a lista;
-- `GET /solicitacoes/1`: `200 OK` quando o id existir;
-- `GET /solicitacoes/999999`: `404 Not Found`;
-- criação com título curto: `400 Bad Request`, sem inserção.
+### 3. Aprovação restrita
 
-### Confirmar persistência
+Mantenha ou corrija a rota:
 
-```bash
-docker compose stop api
-docker compose start api
+```http
+PATCH /solicitacoes/:id/aprovar
 ```
 
-Repita a listagem. O registro deve permanecer no PostgreSQL. Inspecione-o:
+Ela deve exigir JWT e aceitar exclusivamente o papel `gestor`. Um auditor está
+autenticado, mas não pode aprovar uma solicitação.
 
-```bash
-docker compose exec db psql -U app -d solicitacoes -c "SELECT id, titulo, status, versao FROM solicitacoes;"
-```
+### 4. Configuração segura
 
-## Matriz mínima de testes
+A aplicação deve obter o segredo e o tempo de expiração do JWT por variáveis de
+ambiente. Entregue `.env.example` sem segredo real e mantenha `.env` ignorado
+pelo Git. Não inclua token, senha em texto puro ou chave secreta nos arquivos
+versionados ou nas evidências.
 
-| Cenário | Resultado esperado |
-|---|---|
-| criação válida com JWT | `201`, registro persistido |
-| criação sem JWT | `401` |
-| título inválido | `400`, nenhuma inserção |
-| busca de id existente | `200` |
-| busca de id inexistente | `404` |
-| reinício somente da API | dados preservados |
+### 5. Tratamento HTTP
 
-## Exercício de fixação
+A solução deve apresentar os seguintes comportamentos:
 
-Acrescente o campo obrigatório `centroCusto`, limitado a 30 caracteres, à
-entidade e ao DTO. Cadastre duas solicitações de centros diferentes e confirme
-a coluna com `psql`. Registre em três linhas quais restrições ficaram no DTO e
-quais chegaram ao banco.
+- credenciais inválidas no login: `401 Unauthorized`;
+- rota protegida sem token ou com token inválido: `401 Unauthorized`;
+- usuário autenticado sem o papel exigido: `403 Forbidden`;
+- usuário autenticado e autorizado: resposta de sucesso.
 
-> Como `synchronize` ainda está ativo, a mudança é automática e adequada apenas
-> ao laboratório. Não aplique esse procedimento a um banco de produção.
+## Casos de teste
 
-## Conceitos consolidados
+Execute e registre os oito casos abaixo no Thunder Client, Insomnia, Postman ou
+com `curl`.
 
-### Entidade não é DTO
+| Caso | Requisição | Identidade | Resultado esperado |
+|---:|---|---|---|
+| 1 | `POST /auth/login` com senha incorreta | Auditor (sobrenome) | `401` |
+| 2 | `POST /auth/login` com matrícula invertida | Auditor (sobrenome) | `201` e token |
+| 3 | `GET /auth/perfil` com token | Auditor (sobrenome) | `200`, papel `auditor`, sem senha/hash |
+| 4 | `GET /solicitacoes/relatorio` sem token | — | `401` |
+| 5 | `GET /solicitacoes/relatorio` com token de solicitante | Bruno | `403` |
+| 6 | `GET /solicitacoes/relatorio` com token de auditor | Auditor (sobrenome) | `200` e contagens |
+| 7 | `PATCH /solicitacoes/:id/aprovar` com token de auditor | Auditor (sobrenome) | `403` |
+| 8 | `PATCH /solicitacoes/:id/aprovar` com token de gestor | Gestor (primeiro nome) | sucesso |
 
-O DTO valida a entrada da API. A entidade mapeia o estado persistido. Expor a
-entidade em todos os contratos pode revelar campos internos e aumentar o
-acoplamento.
+Se a base do projeto usar outro código de sucesso coerente para a atualização,
+registre-o e justifique.
 
-### Repositório não substitui service
+## Entrega pelo GitHub
 
-O repositório oferece operações de persistência. O service continua coordenando
-regras e transições de estado.
+Crie um repositório no GitHub e envie seu link na atividade correspondente do
+Google Sala de Aula até o final da aula. Confirme que o professor possui acesso
+ao repositório. A entrega será avaliada a partir do conteúdo disponível no
+último commit realizado dentro do prazo; arquivos enviados separadamente ou
+somente armazenados na máquina local não substituem o repositório.
 
-### Volume não é backup
+O repositório deve conter:
 
-O volume preserva dados entre contêineres, mas não oferece sozinho política de
-cópia, retenção, restauração ou recuperação de desastre.
+1. código-fonte da aplicação;
+2. `package.json`, `package-lock.json`, `Dockerfile` e `compose.yaml`;
+3. `.env.example` e `.gitignore`, sem o arquivo `.env`;
+4. `README.md` com:
+   - nome completo do estudante e número de matrícula;
+   - comandos exatos para construir, iniciar, testar e encerrar a aplicação com
+     Docker Compose;
+   - as duas contas personalizadas, seus e-mails, papéis e a regra de senha
+     utilizada: matrícula para o gestor e matrícula invertida para o auditor;
+   - fontes consultadas;
+   - uma explicação de duas a cinco linhas sobre por que os casos sem token e
+     sem papel adequado produzem respostas diferentes;
 
-## Erros comuns
+Não entregue `node_modules`, `dist`, `.env`, tokens JWT ou outros segredos. Antes
+do envio, confirme que outra pessoa conseguiria executar a solução apenas com
+os arquivos do repositório e as instruções do `README.md`. A aplicação deve ser
+construída e executada com Docker; soluções que dependam de Node.js ou npm
+instalados diretamente na máquina do avaliador não atendem ao requisito de
+execução.
 
-- usar `localhost` como host do banco entre contêineres;
-- esquecer `TypeOrmModule.forFeature`;
-- confiar somente na validação do DTO;
-- confundir `repository.create` com uma inserção;
-- manter `synchronize: true` em produção.
-
-## Questões para revisão
-
-1. Por que o array não atende a um processo corporativo?
-2. Qual é a responsabilidade de entidade, DTO, repositório e service?
-3. Por que `DB_HOST` recebe `db` no Compose?
-4. O que o volume `postgres_data` preserva?
-5. Por que `synchronize` será desativado no próximo encontro?
-
-## Checklist de aprendizagem
-
-- Executei API e PostgreSQL pelo Docker Compose.
-- Modelei uma solicitação como entidade relacional.
-- Configurei o banco sem colocar credenciais no código.
-- Injetei e utilizei um repositório TypeORM.
-- Substituí o array por dados persistentes.
-- Testei validação, consulta e persistência após reinício.
-- Reconheço por que `synchronize` não substitui migrations.
-
-## Resumo final
-
-A API passou a armazenar solicitações no PostgreSQL. Docker Compose tornou
-explícitas as dependências e o volume; TypeORM mapeou a entidade e forneceu o
-repositório; DTO e schema passaram a proteger camadas diferentes. No encontro
-07, o schema será versionado e a aprovação combinará mudança de estado e
-auditoria em uma transação.
-
-## Material complementar
-
-- NestJS Database: https://docs.nestjs.com/techniques/database
-- NestJS Configuration: https://docs.nestjs.com/techniques/configuration
-- TypeORM Entities: https://typeorm.io/docs/entity/entities
-- TypeORM Repository APIs: https://typeorm.io/docs/working-with-entity-manager/working-with-repository
-- PostgreSQL Constraints: https://www.postgresql.org/docs/current/ddl-constraints.html
-- Docker Compose: https://docs.docker.com/compose/
+Embora a matrícula conste no `README.md` por exigência de identificação, ela e
+sua forma invertida não devem aparecer no código como senhas em texto puro. Os
+campos de senha da lista de usuários devem conter apenas os respectivos hashes
+`bcrypt`.
