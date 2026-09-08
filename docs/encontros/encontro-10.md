@@ -2,13 +2,13 @@
 
 ## Tema
 
-Transações, consistência e auditoria.
+Migrations, seeds e concorrência.
 
 ## Objetivos
 
-- Definir fronteiras transacionais.
-- Comparar níveis de isolamento.
-- Produzir trilha de auditoria confiável.
+- Evoluir schema de forma repetível.
+- Preparar dados.
+- Compreender concorrência e optimistic locking.
 
 ## Questão orientadora
 
@@ -25,7 +25,7 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Atividade e saída esperada
 
-Incremento inicial da Prática 2.
+Migration executada do zero em ambiente limpo.
 
 ## Conexão com o percurso
 

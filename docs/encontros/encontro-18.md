@@ -2,11 +2,13 @@
 
 ## Tema
 
-Processos, regras e workflows.
+Casos de uso, portas e adaptadores.
 
 ## Objetivos
 
-- Conectar BPMN, regras de negócio, estados, aprovações e responsabilidades ao desenho do software.
+- Isolar aplicação e domínio.
+- Aplicar inversão de dependência.
+- Testar casos de uso sem infraestrutura.
 
 ## Questão orientadora
 
@@ -23,7 +25,7 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Atividade e saída esperada
 
-Modelo de processo com exceções.
+Refatoração de um fluxo e teste isolado.
 
 ## Conexão com o percurso
 

@@ -2,12 +2,13 @@
 
 ## Tema
 
-Fundamentos de mensageria.
+APIs corporativas.
 
 ## Objetivos
 
-- Distinguir fila, tópico e stream.
-- Compreender acknowledgements, ordenação e dead-letter queue.
+- Projetar contratos OpenAPI.
+- Versionar com compatibilidade.
+- Padronizar erros, paginação e filtros.
 
 ## Questão orientadora
 
@@ -24,7 +25,7 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Atividade e saída esperada
 
-Produtor e consumidor executando localmente.
+Contrato versionado e revisado por pares.
 
 ## Conexão com o percurso
 

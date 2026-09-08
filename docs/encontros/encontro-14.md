@@ -1,35 +1,16 @@
-# Encontro 14
+# Encontro 14 — Prática 3
 
-## Tema
+## Reserva do encontro
 
-Arquiteturas limpa e hexagonal.
+Encontro integralmente reservado à realização da **Prática 3 — Integração
+confiável**, no valor de 10 pontos.
 
-## Objetivos
-
-- Separar regras de negócio de detalhes.
-- Reconhecer casos de uso, portas e adaptadores.
-- Representar a solução no C4.
-
-## Questão orientadora
-
-Como este tema altera a capacidade de um sistema sustentar processos críticos,
-integrar-se, permanecer seguro e evoluir com a organização?
+Não haverá exposição de conteúdo novo neste dia. As orientações, os requisitos
+e a rubrica estão em `praticas/atividades-praticas.md` e `docs/avaliacao.md`.
 
 ## Organização sugerida (90 minutos)
 
-1. Retomada e contextualização: 10 min
-2. Conceitos e estudo de caso: 20 min
-3. Demonstração ou modelagem: 20 min
-4. Atividade prática, discussão ou projeto: 30 min
-5. Evidência e fechamento: 10 min
-
-## Atividade e saída esperada
-
-Diagrama C4 inicial.
-
-## Conexão com o percurso
-
-O encontro utiliza a API e os artefatos acumulados como laboratório. Decisões
-devem explicitar contexto, alternativas, consequências e impacto nos requisitos
-funcionais e não funcionais do sistema corporativo.
+1. Apresentação das regras e preparação do ambiente: 10 min
+2. Realização da atividade: 65 min
+3. Entrega, conferência das evidências e encerramento: 15 min
 

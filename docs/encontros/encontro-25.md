@@ -2,13 +2,14 @@
 
 ## Tema
 
-Sagas e consistência distribuída.
+Eventos, idempotência e outbox.
 
 ## Objetivos
 
-- Comparar orquestração e coreografia.
-- Modelar compensações.
-- Explicitar consistência eventual.
+- Modelar eventos de domínio.
+- Suportar reentrega.
+- Aplicar retry com limites.
+- Compreender dual write e outbox.
 
 ## Questão orientadora
 
@@ -25,7 +26,7 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Atividade e saída esperada
 
-Entrega e defesa da Prática 3 (10 pontos).
+Incremento inicial da Prática 3.
 
 ## Conexão com o percurso
 

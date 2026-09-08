@@ -2,14 +2,12 @@
 
 ## Tema
 
-Seminários técnicos.
+LGPD e governança de dados.
 
 ## Objetivos
 
-- Comunicar um estudo fundamentado.
-- Relacionar padrões a casos.
-- Analisar trade-offs.
-- Responder criticamente.
+- Mapear finalidade, base, acesso, retenção e descarte.
+- Aplicar minimização, auditoria e privacy by design.
 
 ## Questão orientadora
 
@@ -26,7 +24,7 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Atividade e saída esperada
 
-Apresentação do seminário (20 pontos).
+Matriz de dados pessoais e controles.
 
 ## Conexão com o percurso
 

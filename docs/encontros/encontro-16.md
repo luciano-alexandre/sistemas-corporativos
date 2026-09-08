@@ -2,11 +2,13 @@
 
 ## Tema
 
-Modelagem de domínio.
+Monólito modular e ADRs.
 
 ## Objetivos
 
-- Identificar linguagem ubíqua, entidades, objetos-valor, agregados, invariantes e serviços de domínio.
+- Projetar limites de módulos.
+- Analisar coesão e acoplamento.
+- Registrar contexto, decisão e consequências.
 
 ## Questão orientadora
 
@@ -23,7 +25,7 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Atividade e saída esperada
 
-Modelo de domínio do caso estudado.
+ADR 001 sobre estilo arquitetural.
 
 ## Conexão com o percurso
 

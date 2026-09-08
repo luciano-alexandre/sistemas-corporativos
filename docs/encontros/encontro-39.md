@@ -2,7 +2,7 @@
 
 ## Tema
 
-Apresentações finais — sessão 3.
+Apresentações finais — sessão 2.
 
 ## Objetivos
 

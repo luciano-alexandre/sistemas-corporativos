@@ -2,13 +2,12 @@
 
 ## Tema
 
-APIs corporativas.
+Integração corporativa.
 
 ## Objetivos
 
-- Projetar contratos OpenAPI.
-- Versionar com compatibilidade.
-- Padronizar erros, paginação e filtros.
+- Mapear sistemas e dependências.
+- Reconhecer adapter, facade, anti-corruption layer e padrões de integração.
 
 ## Questão orientadora
 
@@ -25,7 +24,7 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Atividade e saída esperada
 
-Contrato versionado e revisado por pares.
+Mapa de integrações do projeto.
 
 ## Conexão com o percurso
 

@@ -2,14 +2,12 @@
 
 ## Tema
 
-Eventos, idempotência e outbox.
+Fundamentos de mensageria.
 
 ## Objetivos
 
-- Modelar eventos de domínio.
-- Suportar reentrega.
-- Aplicar retry com limites.
-- Compreender dual write e outbox.
+- Distinguir fila, tópico e stream.
+- Compreender acknowledgements, ordenação e dead-letter queue.
 
 ## Questão orientadora
 
@@ -26,7 +24,7 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Atividade e saída esperada
 
-Incremento inicial da Prática 3.
+Produtor e consumidor executando localmente.
 
 ## Conexão com o percurso
 

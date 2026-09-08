@@ -2,13 +2,13 @@
 
 ## Tema
 
-Microsserviços com critérios.
+Sagas e consistência distribuída.
 
 ## Objetivos
 
-- Avaliar autonomia, limites e comunicação.
-- Reconhecer custos de dados distribuídos e operação.
-- Evitar decomposição prematura.
+- Comparar orquestração e coreografia.
+- Modelar compensações.
+- Explicitar consistência eventual.
 
 ## Questão orientadora
 
@@ -25,7 +25,7 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Atividade e saída esperada
 
-Registro argumentado: monólito modular ou microsserviços.
+Entrega e defesa da Prática 3 (10 pontos).
 
 ## Conexão com o percurso
 

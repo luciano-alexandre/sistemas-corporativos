@@ -1,32 +1,13 @@
-# Encontro 37
+# Encontro 37 — Acompanhamento do Projeto
 
-## Tema
+## Reserva do encontro
 
-Apresentações finais — sessão 1.
+Encontro sem tema e sem conteúdo novo, reservado ao acompanhamento das equipes
+na semana anterior às apresentações finais.
 
-## Objetivos
+## Atividades
 
-- Demonstrar valor, arquitetura e execução.
-- Defender decisões com evidências.
-- Avaliar pares com respeito técnico.
-
-## Questão orientadora
-
-Como este tema altera a capacidade de um sistema sustentar processos críticos,
-integrar-se, permanecer seguro e evoluir com a organização?
-
-## Organização sugerida (90 minutos)
-
-1. Preparação da sessão e critérios: 5 min
-2. Apresentações e demonstrações: 70 min
-3. Perguntas, defesa e registro avaliativo: 15 min
-
-## Atividade e saída esperada
-
-Avaliação do projeto final.
-
-## Conexão com o percurso
-
-O encontro utiliza a API e os artefatos acumulados como laboratório. Decisões
-devem explicitar contexto, alternativas, consequências e impacto nos requisitos
-funcionais e não funcionais do sistema corporativo.
+- Conferência das pendências do encontro anterior.
+- Homologação do fluxo que será demonstrado.
+- Ensaio da apresentação e da defesa técnica.
+- Orientação final sem introdução de novos requisitos.

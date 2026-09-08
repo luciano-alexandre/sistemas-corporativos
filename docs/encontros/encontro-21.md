@@ -1,34 +1,16 @@
-# Encontro 21
+# Encontro 21 — Seminário
 
-## Tema
+## Reserva do encontro
 
-Integração corporativa.
+Encontro integralmente reservado às apresentações do **Seminário**, no valor de
+20 pontos.
 
-## Objetivos
-
-- Mapear sistemas e dependências.
-- Reconhecer adapter, facade, anti-corruption layer e padrões de integração.
-
-## Questão orientadora
-
-Como este tema altera a capacidade de um sistema sustentar processos críticos,
-integrar-se, permanecer seguro e evoluir com a organização?
+Não haverá exposição de conteúdo novo neste dia. Os temas, o formato e a rubrica
+estão em `atividades/seminario.md` e `docs/avaliacao.md`.
 
 ## Organização sugerida (90 minutos)
 
-1. Retomada e contextualização: 10 min
-2. Conceitos e estudo de caso: 20 min
-3. Demonstração ou modelagem: 20 min
-4. Atividade prática, discussão ou projeto: 30 min
-5. Evidência e fechamento: 10 min
-
-## Atividade e saída esperada
-
-Mapa de integrações do projeto.
-
-## Conexão com o percurso
-
-O encontro utiliza a API e os artefatos acumulados como laboratório. Decisões
-devem explicitar contexto, alternativas, consequências e impacto nos requisitos
-funcionais e não funcionais do sistema corporativo.
+1. Organização das equipes e critérios: 5 min
+2. Apresentações e perguntas: 80 min
+3. Encerramento e registro das entregas: 5 min
 

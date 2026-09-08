@@ -2,13 +2,11 @@
 
 ## Tema
 
-Legado e modernização.
+Processos, regras e workflows.
 
 ## Objetivos
 
-- Reconhecer restrições de legado.
-- Comparar reescrita, encapsulamento e strangler.
-- Planejar migração incremental.
+- Conectar BPMN, regras de negócio, estados, aprovações e responsabilidades ao desenho do software.
 
 ## Questão orientadora
 
@@ -25,7 +23,7 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Atividade e saída esperada
 
-Análise de um caso de modernização.
+Modelo de processo com exceções.
 
 ## Conexão com o percurso
 

@@ -2,12 +2,14 @@
 
 ## Tema
 
-Projeto: arquitetura, segurança e dados.
+Seminários técnicos.
 
 ## Objetivos
 
-- Revisar limites, contratos, modelo, ameaças, transações e riscos.
-- Priorizar correções relevantes.
+- Comunicar um estudo fundamentado.
+- Relacionar padrões a casos.
+- Analisar trade-offs.
+- Responder criticamente.
 
 ## Questão orientadora
 
@@ -24,7 +26,7 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Atividade e saída esperada
 
-Checkpoint técnico do projeto.
+Apresentação do seminário (20 pontos).
 
 ## Conexão com o percurso
 

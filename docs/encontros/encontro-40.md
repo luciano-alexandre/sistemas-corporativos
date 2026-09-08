@@ -2,13 +2,14 @@
 
 ## Tema
 
-Apresentações finais — sessão 4 e fechamento.
+Apresentações finais — sessão 3 e fechamento.
 
 ## Objetivos
 
-- Concluir demonstrações e defesas.
-- Sintetizar aprendizados.
-- Registrar retrospectiva e possibilidades de evolução.
+- Demonstrar valor, arquitetura e execução.
+- Defender decisões com evidências.
+- Avaliar pares com respeito técnico.
+- Sintetizar aprendizados e possibilidades de evolução.
 
 ## Questão orientadora
 
@@ -19,12 +20,12 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 1. Preparação da sessão e critérios: 5 min
 2. Apresentações e demonstrações: 60 min
-3. Perguntas e defesa: 15 min
+3. Perguntas, defesa e registro avaliativo: 15 min
 4. Retrospectiva e fechamento da disciplina: 10 min
 
 ## Atividade e saída esperada
 
-Projeto final (50 pontos) e fechamento.
+Avaliação do projeto final e fechamento.
 
 ## Conexão com o percurso
 

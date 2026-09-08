@@ -2,13 +2,11 @@
 
 ## Tema
 
-Casos de uso, portas e adaptadores.
+Modelagem de domínio.
 
 ## Objetivos
 
-- Isolar aplicação e domínio.
-- Aplicar inversão de dependência.
-- Testar casos de uso sem infraestrutura.
+- Identificar linguagem ubíqua, entidades, objetos-valor, agregados, invariantes e serviços de domínio.
 
 ## Questão orientadora
 
@@ -25,7 +23,7 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Atividade e saída esperada
 
-Refatoração de um fluxo e teste isolado.
+Modelo de domínio do caso estudado.
 
 ## Conexão com o percurso
 

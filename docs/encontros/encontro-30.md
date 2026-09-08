@@ -2,13 +2,12 @@
 
 ## Tema
 
-CI/CD e ambientes.
+Jobs e processamento em segundo plano.
 
 ## Objetivos
 
-- Automatizar lint, testes, build e imagem.
-- Definir quality gates.
-- Promover artefatos entre ambientes.
+- Modelar tarefas agendadas e workers.
+- Controlar concorrência, reexecução, progresso e falhas.
 
 ## Questão orientadora
 
@@ -25,7 +24,7 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Atividade e saída esperada
 
-Pipeline executado no repositório.
+Worker idempotente funcional.
 
 ## Conexão com o percurso
 
