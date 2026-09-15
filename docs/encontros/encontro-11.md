@@ -2,237 +2,111 @@
 
 ## Tema
 
-Persistência, migrations, transações, auditoria e concorrência.
+Persistência, migrations, seeds, transações, auditoria e concorrência.
 
-## O que vamos revisar
+## Objetivo
 
-- Modelagem de uma entidade persistida no PostgreSQL.
-- Validação de entrada com DTOs.
-- Consultas e alterações com repositório TypeORM.
-- Evolução do schema por migration.
-- Dados iniciais preparados por seed.
-- Escritas atômicas com transação.
-- Registro de auditoria com o ator obtido do JWT.
-- Detecção de versão antiga com resposta `409 Conflict`.
+Revisar os conhecimentos trabalhados entre os encontros 07 e 10 por meio de
+uma alteração no projeto de solicitações.
 
-## Antes de começar
+## Ponto de partida
 
-Continue no projeto construído entre os encontros 07 e 10. Confirme que:
+Utilize o mesmo projeto desenvolvido nas aulas anteriores. A aplicação deve
+continuar sendo executada com Docker Compose e possuir:
 
-- API e PostgreSQL iniciam pelo Docker Compose;
-- `synchronize` está desativado;
-- migrations e seed podem ser executados;
-- existem solicitações pendentes para teste;
-- login, JWT e papéis continuam funcionando;
-- a tabela de auditoria existe.
+- PostgreSQL configurado;
+- solicitações persistidas pelo TypeORM;
+- migrations em lugar de sincronização automática;
+- dados iniciais preparados por seed;
+- autenticação com JWT e autorização por papéis;
+- controle de versão das solicitações;
+- registro de auditoria.
 
-## A atividade
+## Situação
 
-A equipe de compras precisa rejeitar solicitações que não possuam
-justificativa suficiente ou que estejam associadas ao centro de custo errado.
-Implemente uma nova transição:
+A equipe de compras percebeu que nem toda solicitação deve ser aprovada.
+Algumas precisam ser rejeitadas porque possuem informações insuficientes,
+estão associadas ao centro de custo incorreto ou não atendem às regras da
+organização.
 
-```http
-PATCH /solicitacoes/:id/rejeitar
-```
+Atualmente, a API permite criar, consultar e aprovar solicitações, mas não
+oferece uma forma segura de registrar uma rejeição. A empresa precisa saber
+quem tomou a decisão, quando ela ocorreu e qual foi a justificativa apresentada.
 
-A operação deve mudar uma solicitação `pendente` para `rejeitada` e registrar
-a decisão na auditoria. As duas escritas devem ser confirmadas ou desfeitas
-juntas.
+Duas pessoas também podem consultar a mesma solicitação e tentar tomar
+decisões diferentes. A aplicação não pode permitir que uma decisão baseada em
+informações antigas sobrescreva silenciosamente a mais recente.
 
-## Alterar o modelo
+## O que deve ser acrescentado
 
-Amplie o tipo do status:
+A API deve passar a representar o estado `rejeitada` e disponibilizar a
+operação:
 
-```ts
-export type StatusSolicitacao =
-  | 'pendente'
-  | 'aprovada'
-  | 'rejeitada';
-```
-
-Crie uma migration para representar a mudança no schema. Se `status` estiver
-armazenado como `varchar` sem uma restrição de valores, acrescente uma
-`CHECK CONSTRAINT` que aceite somente os três estados.
-
-Exemplo de SQL que pode aparecer na migration:
-
-```sql
-ALTER TABLE solicitacoes
-ADD CONSTRAINT chk_solicitacoes_status
-CHECK (status IN ('pendente', 'aprovada', 'rejeitada'));
-```
-
-O método `down` deve remover essa restrição.
-
-> Se uma migration anterior já criou uma restrição para `status`, altere-a em
-> uma nova migration. Não edite uma migration que já tenha sido aplicada.
-
-## Criar o DTO
-
-Crie `src/solicitacoes/dto/rejeitar-solicitacao.dto.ts`:
-
-```ts
-import { IsInt, IsString, MaxLength, Min, MinLength } from 'class-validator';
-
-export class RejeitarSolicitacaoDto {
-  @IsInt()
-  @Min(1)
-  versao: number;
-
-  @IsString()
-  @MinLength(10)
-  @MaxLength(200)
-  justificativa: string;
-}
-```
-
-A justificativa vem do corpo. O ator não: ele deve vir do JWT validado pelo
-servidor.
-
-## Implementar a transação
-
-Acrescente ao `SolicitacoesService` um método com esta assinatura:
-
-```ts
-rejeitar(
-  id: number,
-  versaoEsperada: number,
-  justificativa: string,
-  atorId: number,
-)
-```
-
-Dentro de `dataSource.transaction`:
-
-1. localize a solicitação;
-2. responda `404` se ela não existir;
-3. responda `409` se ela não estiver pendente;
-4. execute um `UPDATE` condicionado por id, status e versão;
-5. responda `409` se nenhuma linha for alterada;
-6. insira a auditoria `SOLICITACAO_REJEITADA`;
-7. devolva a solicitação atualizada.
-
-O trecho central pode seguir esta estrutura:
-
-```ts
-const resultado = await manager
-  .createQueryBuilder()
-  .update(Solicitacao)
-  .set({
-    status: 'rejeitada',
-    versao: () => 'versao + 1',
-  })
-  .where('id = :id', { id })
-  .andWhere('status = :status', { status: 'pendente' })
-  .andWhere('versao = :versao', { versao: versaoEsperada })
-  .execute();
-
-if (resultado.affected !== 1) {
-  throw new ConflictException(
-    'A solicitação foi alterada; consulte novamente',
-  );
-}
-
-await manager.insert(Auditoria, {
-  atorId,
-  acao: 'SOLICITACAO_REJEITADA',
-  recursoTipo: 'solicitacao',
-  recursoId: id,
-  detalhes: {
-    statusAnterior: 'pendente',
-    statusAtual: 'rejeitada',
-    justificativa,
-    versaoAnterior: versaoEsperada,
-  },
-});
-```
-
-Use o `manager` transacional nas duas escritas. Não use o repositório injetado
-para uma operação que pertença à mesma transação.
-
-## Criar a rota
-
-No controller, mantenha a mesma proteção usada na aprovação:
-
-```ts
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('gestor')
-@Patch(':id/rejeitar')
-rejeitar(
-  @Param('id', ParseIntPipe) id: number,
-  @Body() dto: RejeitarSolicitacaoDto,
-  @Req() request: RequisicaoAutenticada,
-) {
-  return this.service.rejeitar(
-    id,
-    dto.versao,
-    dto.justificativa,
-    request.user.id,
-  );
-}
-```
-
-Combine os imports com os existentes. Não remova as rotas de criação,
-consulta, aprovação ou relatório.
-
-## Atualizar o seed
-
-Acrescente ao seed uma solicitação pendente destinada ao teste de rejeição:
-
-```ts
-{
-  titulo: 'Compra sem centro de custo confirmado',
-  centroCusto: 'COMPRAS',
-  prioridade: 'normal' as const,
-}
-```
-
-Execute o seed duas vezes e confirme que o registro não foi duplicado.
-
-## Testes
-
-| Caso | Resultado esperado |
+| Método e endpoint | Finalidade |
 |---|---|
-| rejeição válida por gestor | `200`, status `rejeitada` |
-| justificativa com menos de 10 caracteres | `400`, sem escrita |
-| rota sem token | `401`, sem escrita |
-| rejeição por solicitante ou auditor | `403`, sem escrita |
-| id inexistente | `404`, sem auditoria |
-| solicitação já aprovada ou rejeitada | `409`, sem nova auditoria |
-| versão antiga | `409`, estado preservado |
-| falha simulada antes da auditoria | rollback para `pendente` |
-| seed executado duas vezes | nenhum registro duplicado |
+| `PATCH /solicitacoes/:id/rejeitar` | rejeitar uma solicitação pendente |
 
-## Conferir no PostgreSQL
+A requisição deve informar:
 
-```bash
-docker compose exec db psql -U app -d solicitacoes -c "SELECT id, titulo, status, versao FROM solicitacoes ORDER BY id;"
-docker compose exec db psql -U app -d solicitacoes -c "SELECT ator_id, acao, recurso_id, detalhes FROM auditorias ORDER BY id;"
-```
+- a versão da solicitação consultada pelo cliente;
+- uma justificativa para a rejeição.
 
-Para uma rejeição confirmada, deve existir uma solicitação com status
-`rejeitada` e uma auditoria com o mesmo recurso. Credenciais rejeitadas, papel
-incorreto, versão antiga ou rollback não devem produzir uma auditoria de sucesso.
+A justificativa deve possuir entre 10 e 200 caracteres. A identidade do
+responsável pela decisão não deve ser recebida no corpo da requisição; ela deve
+ser obtida da autenticação já existente.
 
-## Dicas
+## Regras da operação
 
-- Gere uma nova migration; não volte a usar `synchronize`.
-- Obtenha o ator de `request.user`, nunca do corpo.
-- Valide a justificativa no DTO.
-- Inclua a versão na condição do `UPDATE`.
-- Mantenha alteração e auditoria no mesmo manager transacional.
-- Use `409` para conflito com o estado atual.
+- Somente um usuário com papel `gestor` pode rejeitar uma solicitação.
+- Apenas solicitações com status `pendente` podem ser rejeitadas.
+- Uma solicitação aprovada ou rejeitada não pode receber outra decisão.
+- A versão informada deve corresponder à versão atual do registro.
+- Uma rejeição aceita deve alterar o status e incrementar a versão.
+- A justificativa deve fazer parte do registro de auditoria da decisão.
+- A mudança de estado e a auditoria devem ser confirmadas juntas.
+- Se uma delas falhar, nenhuma alteração deve permanecer no banco.
+- Senhas, hashes, tokens e segredos não podem aparecer na auditoria.
 
-## Confira o resultado
+## Banco de dados
 
-- A migration funciona em um banco vazio.
-- O seed pode ser repetido sem duplicar registros.
-- A rota exige JWT e papel `gestor`.
-- A rejeição atualiza status e versão.
-- A auditoria registra ator, ação, recurso, instante e justificativa.
-- Uma versão antiga não sobrescreve a decisão atual.
-- Uma falha entre as escritas provoca rollback.
+A evolução do modelo deve ser realizada por uma nova migration. Não altere
+uma migration que já tenha sido aplicada e não reative a sincronização
+automática do TypeORM.
 
-Esta atividade reúne os conhecimentos dos encontros 07 a 10 e prepara o
-projeto para a Prática 2 do encontro 12.
+O banco deve aceitar somente os estados previstos pela aplicação. A migration
+também deve possuir uma forma coerente de desfazer sua alteração.
+
+Atualize o seed com uma solicitação pendente que possa ser usada nos testes de
+rejeição. Executar o seed mais de uma vez não deve duplicar esse registro.
+
+## Comportamentos esperados
+
+| Situação | Resultado esperado |
+|---|---|
+| rejeição válida por gestor | sucesso, status `rejeitada` e versão incrementada |
+| justificativa muito curta ou muito longa | `400 Bad Request` |
+| requisição sem token ou com token inválido | `401 Unauthorized` |
+| rejeição por solicitante ou auditor | `403 Forbidden` |
+| id inexistente | `404 Not Found` |
+| solicitação que não está pendente | `409 Conflict` |
+| versão diferente da versão atual | `409 Conflict` |
+| falha durante o registro da decisão | nenhuma alteração persistida |
+| seed executado novamente | nenhum registro duplicado |
+
+## Verificação
+
+Ao terminar, confirme que:
+
+- a migration funciona em um banco vazio;
+- o seed pode ser repetido;
+- a nova rota está protegida;
+- entradas inválidas não alteram o banco;
+- a primeira decisão com a versão atual pode ser concluída;
+- uma segunda decisão baseada na versão antiga é rejeitada;
+- uma rejeição concluída possui a auditoria correspondente;
+- uma falha intermediária não deixa apenas parte da operação gravada;
+- as rotas de criação, consulta e aprovação continuam funcionando.
+
+A atividade deve ser resolvida com os recursos estudados nos encontros 07 a
+10. Escolha a organização do código e os recursos do TypeORM que considerar
+adequados, desde que todos os comportamentos descritos sejam atendidos.
