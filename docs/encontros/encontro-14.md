@@ -1,16 +1,35 @@
-# Encontro 14 — Prática 3
+# Encontro 14
 
-## Reserva do encontro
+## Tema
 
-Encontro integralmente reservado à realização da **Prática 3 — Integração
-confiável**, no valor de 10 pontos.
+NoSQL e persistência poliglota.
 
-Não haverá exposição de conteúdo novo neste dia. As orientações, os requisitos
-e a rubrica estão em `praticas/atividades-praticas.md` e `docs/avaliacao.md`.
+## Objetivos
+
+- Comparar modelos relacional e documental.
+- Evitar adoção por moda.
+- Escolher armazenamento segundo padrões de acesso.
+
+## Questão orientadora
+
+Como este tema altera a capacidade de um sistema sustentar processos críticos,
+integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Organização sugerida (90 minutos)
 
-1. Apresentação das regras e preparação do ambiente: 10 min
-2. Realização da atividade: 65 min
-3. Entrega, conferência das evidências e encerramento: 15 min
+1. Retomada e contextualização: 10 min
+2. Conceitos e estudo de caso: 20 min
+3. Demonstração ou modelagem: 20 min
+4. Atividade prática, discussão ou projeto: 30 min
+5. Evidência e fechamento: 10 min
+
+## Atividade e saída esperada
+
+Entrega e defesa da Prática 2 (10 pontos).
+
+## Conexão com o percurso
+
+O encontro utiliza a API e os artefatos acumulados como laboratório. Decisões
+devem explicitar contexto, alternativas, consequências e impacto nos requisitos
+funcionais e não funcionais do sistema corporativo.
 

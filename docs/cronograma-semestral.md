@@ -14,15 +14,15 @@ Cada encontro corresponde a duas aulas de 45 minutos.
 | [8](encontros/encontro-08.md) | U1 | Atividade prática de persistência com PostgreSQL e TypeORM |
 | [9](encontros/encontro-09.md) | U1 | Migrations, transações, concorrência e auditoria |
 | [10](encontros/encontro-10.md) | U1 | Migrations, seeds e concorrência |
-| [11](encontros/encontro-11.md) | U1 | **Dia reservado à Prática 2 (10 pontos)** |
-| [12](encontros/encontro-12.md) | U1 | Transações, consistência e auditoria |
-| [13](encontros/encontro-13.md) | U1 | NoSQL e persistência poliglota |
-| [14](encontros/encontro-14.md) | U1 | **Dia reservado à Prática 3 (10 pontos)** |
-| [15](encontros/encontro-15.md) | U1 | Arquiteturas limpa e hexagonal |
-| [16](encontros/encontro-16.md) | U1 | Monólito modular e ADRs |
-| [17](encontros/encontro-17.md) | U1 | Modelagem de domínio |
-| [18](encontros/encontro-18.md) | U1 | Casos de uso, portas e adaptadores |
-| [19](encontros/encontro-19.md) | U1 | Processos, regras e workflows |
+| [11](encontros/encontro-11.md) | U1 | Atividade prática de revisão dos encontros 07–10 |
+| [12](encontros/encontro-12.md) | U1 | **Dia reservado à Prática 2 (10 pontos)** |
+| [13](encontros/encontro-13.md) | U1 | Transações, consistência e auditoria |
+| [14](encontros/encontro-14.md) | U1 | NoSQL e persistência poliglota |
+| [15](encontros/encontro-15.md) | U1 | **Dia reservado à Prática 3 (10 pontos)** |
+| [16](encontros/encontro-16.md) | U1 | Arquiteturas limpa e hexagonal |
+| [17](encontros/encontro-17.md) | U1 | Monólito modular e ADRs |
+| [18](encontros/encontro-18.md) | U1 | Modelagem de domínio |
+| [19](encontros/encontro-19.md) | U1 | Casos de uso, processos, regras e workflows |
 | [20](encontros/encontro-20.md) | U1 | **Dia reservado ao Seminário (20 pontos)** |
 | [21](encontros/encontro-21.md) | U2 | Integração corporativa |
 | [22](encontros/encontro-22.md) | U2 | APIs corporativas |
@@ -47,7 +47,7 @@ Cada encontro corresponde a duas aulas de 45 minutos.
 
 ## Marcos de avaliação
 
-- 30 pontos em práticas: encontros 6, 11 e 14, integralmente reservados;
+- 30 pontos em práticas: encontros 6, 12 e 15, integralmente reservados;
 - 20 pontos em seminário: encontro 20, integralmente reservado;
 - 50 pontos em projeto final: desenvolvimento até o encontro 36 e
   apresentações nos encontros 37–40.

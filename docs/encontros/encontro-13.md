@@ -2,13 +2,13 @@
 
 ## Tema
 
-NoSQL e persistência poliglota.
+Transações, consistência e auditoria.
 
 ## Objetivos
 
-- Comparar modelos relacional e documental.
-- Evitar adoção por moda.
-- Escolher armazenamento segundo padrões de acesso.
+- Definir fronteiras transacionais.
+- Comparar níveis de isolamento.
+- Produzir trilha de auditoria confiável.
 
 ## Questão orientadora
 
@@ -25,7 +25,7 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Atividade e saída esperada
 
-Entrega e defesa da Prática 2 (10 pontos).
+Incremento inicial da Prática 2.
 
 ## Conexão com o percurso
 

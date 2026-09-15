@@ -2,13 +2,13 @@
 
 ## Tema
 
-Monólito modular e ADRs.
+Arquiteturas limpa e hexagonal.
 
 ## Objetivos
 
-- Projetar limites de módulos.
-- Analisar coesão e acoplamento.
-- Registrar contexto, decisão e consequências.
+- Separar regras de negócio de detalhes.
+- Reconhecer casos de uso, portas e adaptadores.
+- Representar a solução no C4.
 
 ## Questão orientadora
 
@@ -25,7 +25,7 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Atividade e saída esperada
 
-ADR 001 sobre estilo arquitetural.
+Diagrama C4 inicial.
 
 ## Conexão com o percurso
 

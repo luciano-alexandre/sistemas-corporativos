@@ -1,5 +1,208 @@
 # Encontro 09
 
+## Correção da atividade do encontro 08
+
+Antes de iniciar o conteúdo novo, compare sua implementação com a solução a
+seguir. Não é necessário que o código esteja idêntico, mas o resultado deve
+manter as responsabilidades separadas e executar os filtros no PostgreSQL.
+
+### Entidade atualizada
+
+Em `src/solicitacoes/solicitacao.entity.ts`, acrescente os novos campos e
+preserve os que já existiam:
+
+```ts
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+  VersionColumn,
+} from 'typeorm';
+
+export type StatusSolicitacao = 'pendente' | 'aprovada';
+export type PrioridadeSolicitacao = 'normal' | 'urgente';
+
+@Entity({ name: 'solicitacoes' })
+export class Solicitacao {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ type: 'varchar', length: 150 })
+  titulo: string;
+
+  @Column({ name: 'centro_custo', type: 'varchar', length: 30 })
+  centroCusto: string;
+
+  @Column({ type: 'varchar', length: 10, default: 'normal' })
+  prioridade: PrioridadeSolicitacao;
+
+  @Column({ type: 'varchar', length: 20, default: 'pendente' })
+  status: StatusSolicitacao;
+
+  @VersionColumn({ name: 'versao' })
+  versao: number;
+
+  @CreateDateColumn({ name: 'criada_em', type: 'timestamptz' })
+  criadaEm: Date;
+
+  @UpdateDateColumn({ name: 'atualizada_em', type: 'timestamptz' })
+  atualizadaEm: Date;
+}
+```
+
+O nome usado no JSON pode seguir o padrão do TypeScript (`centroCusto`),
+enquanto `name: 'centro_custo'` mantém o padrão escolhido para o banco.
+
+### DTO de criação
+
+Atualize `src/solicitacoes/dto/criar-solicitacao.dto.ts`:
+
+```ts
+import { IsIn, IsString, MaxLength, MinLength } from 'class-validator';
+import type { PrioridadeSolicitacao } from '../solicitacao.entity';
+
+export class CriarSolicitacaoDto {
+  @IsString()
+  @MinLength(5)
+  @MaxLength(150)
+  titulo: string;
+
+  @IsString()
+  @MinLength(2)
+  @MaxLength(30)
+  centroCusto: string;
+
+  @IsIn(['normal', 'urgente'])
+  prioridade: PrioridadeSolicitacao;
+}
+```
+
+O tipo TypeScript ajuda durante o desenvolvimento, mas `@IsIn` valida o valor
+recebido quando a aplicação está em execução.
+
+### DTO dos filtros
+
+Crie `src/solicitacoes/dto/filtrar-solicitacoes.dto.ts`:
+
+```ts
+import { IsIn, IsOptional, IsString, MaxLength } from 'class-validator';
+import type {
+  PrioridadeSolicitacao,
+  StatusSolicitacao,
+} from '../solicitacao.entity';
+
+export class FiltrarSolicitacoesDto {
+  @IsOptional()
+  @IsIn(['pendente', 'aprovada'])
+  status?: StatusSolicitacao;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(30)
+  centroCusto?: string;
+
+  @IsOptional()
+  @IsIn(['normal', 'urgente'])
+  prioridade?: PrioridadeSolicitacao;
+}
+```
+
+`@IsOptional` faz com que cada filtro possa ser omitido, mas, quando enviado,
+seu valor ainda precisa ser válido.
+
+### Criação e listagem no service
+
+No `SolicitacoesService`, importe `FindOptionsWhere` e os DTOs:
+
+```ts
+import { FindOptionsWhere, Repository } from 'typeorm';
+import { CriarSolicitacaoDto } from './dto/criar-solicitacao.dto';
+import { FiltrarSolicitacoesDto } from './dto/filtrar-solicitacoes.dto';
+import { Solicitacao } from './solicitacao.entity';
+```
+
+Adapte os métodos `criar` e `listar`:
+
+```ts
+criar(dto: CriarSolicitacaoDto) {
+  const solicitacao = this.repository.create({
+    titulo: dto.titulo,
+    centroCusto: dto.centroCusto,
+    prioridade: dto.prioridade,
+    status: 'pendente',
+  });
+
+  return this.repository.save(solicitacao);
+}
+
+listar(filtros: FiltrarSolicitacoesDto) {
+  const where: FindOptionsWhere<Solicitacao> = {};
+
+  if (filtros.status) {
+    where.status = filtros.status;
+  }
+
+  if (filtros.centroCusto) {
+    where.centroCusto = filtros.centroCusto;
+  }
+
+  if (filtros.prioridade) {
+    where.prioridade = filtros.prioridade;
+  }
+
+  return this.repository.find({
+    where,
+    order: { id: 'ASC' },
+  });
+}
+```
+
+Os campos são copiados explicitamente no cadastro. Assim, o cliente não
+consegue definir livremente `id`, `status`, `versao` ou datas. Na listagem, o
+objeto `where` é convertido pelo TypeORM em uma consulta filtrada no banco.
+
+### Controller
+
+Receba os filtros da query string e preserve o guard JWT:
+
+```ts
+import { Body, Get, Post, Query, UseGuards } from '@nestjs/common';
+import { CriarSolicitacaoDto } from './dto/criar-solicitacao.dto';
+import { FiltrarSolicitacoesDto } from './dto/filtrar-solicitacoes.dto';
+
+@UseGuards(JwtAuthGuard)
+@Post()
+criar(@Body() dto: CriarSolicitacaoDto) {
+  return this.service.criar(dto);
+}
+
+@UseGuards(JwtAuthGuard)
+@Get()
+listar(@Query() filtros: FiltrarSolicitacoesDto) {
+  return this.service.listar(filtros);
+}
+```
+
+Esses imports devem ser combinados com os que o controller já utiliza. Não
+remova a consulta por id, a rota de relatório ou a aprovação protegida por
+papel.
+
+### Conferência rápida
+
+Depois de iniciar a aplicação, confirme:
+
+1. cadastro com `centroCusto` e prioridade válida retorna `201`;
+2. prioridade `alta` retorna `400`;
+3. `GET /solicitacoes?centroCusto=TI-DEV&prioridade=urgente` retorna somente os
+   registros correspondentes;
+4. listagem sem token retorna `401`;
+5. os registros continuam disponíveis depois de reiniciar apenas a API.
+
+Se esses resultados forem obtidos, a atividade está corrigida e o projeto está
+pronto para substituir `synchronize` por migrations.
+
 ## Tema
 
 Migrations, transações, concorrência e trilha de auditoria com TypeORM.
@@ -13,13 +216,14 @@ Migrations, transações, concorrência e trilha de auditoria com TypeORM.
 - Detectar atualizações concorrentes com controle otimista.
 - Diferenciar log técnico de trilha de auditoria.
 - Testar sucesso, conflito, negação e rollback.
-- Preparar a Prática 2 do encontro 11.
+- Preparar a Prática 2 do encontro 12.
 
 ## Ponto de partida
 
-Continue no projeto ampliado no encontro 08. Ele deve executar NestJS e PostgreSQL pelo
-Docker Compose e persistir `Solicitacao` por meio do TypeORM. Antes de alterar
-o projeto, crie e consulte um registro para confirmar o estado inicial.
+Continue no projeto ampliado no encontro 08. Ele deve executar NestJS e
+PostgreSQL pelo Docker Compose e persistir `Solicitacao` por meio do TypeORM.
+Antes de alterar o projeto, crie e consulte um registro para confirmar o estado
+inicial.
 
 ## Situação-problema
 
@@ -386,7 +590,7 @@ não a entregue no código final.
 | token ausente ou inválido | `401` | nenhuma alteração |
 | falha entre as escritas | `500` | rollback das operações |
 
-## Exercício preparatório para o encontro 11
+## Exercício preparatório para o encontro 12
 
 Implemente `PATCH /solicitacoes/:id/cancelar` com os requisitos:
 
@@ -452,7 +656,7 @@ integridade, retenção e minimização.
 O schema passou a evoluir por migrations. A aprovação tornou-se atômica:
 altera o estado e registra auditoria ou não confirma nenhuma escrita. O
 controle otimista impede que uma decisão sobrescreva silenciosamente outra.
-Esses elementos formam a base da Prática 2 do encontro 11.
+Esses elementos formam a base da Prática 2 do encontro 12.
 
 ## Material complementar
 

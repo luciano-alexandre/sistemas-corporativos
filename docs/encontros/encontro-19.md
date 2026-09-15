@@ -2,11 +2,15 @@
 
 ## Tema
 
-Processos, regras e workflows.
+Casos de uso, processos, regras e workflows.
 
 ## Objetivos
 
-- Conectar BPMN, regras de negócio, estados, aprovações e responsabilidades ao desenho do software.
+- Isolar aplicação e domínio.
+- Aplicar inversão de dependência.
+- Testar casos de uso sem infraestrutura.
+- Relacionar processos organizacionais, estados e regras ao desenho do software.
+- Representar caminhos de sucesso, exceções e responsabilidades.
 
 ## Questão orientadora
 
@@ -23,11 +27,11 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Atividade e saída esperada
 
-Modelo de processo com exceções.
+Modelagem de um processo com exceções, seguida da refatoração e do teste
+isolado de um caso de uso desse processo.
 
 ## Conexão com o percurso
 
 O encontro utiliza a API e os artefatos acumulados como laboratório. Decisões
 devem explicitar contexto, alternativas, consequências e impacto nos requisitos
 funcionais e não funcionais do sistema corporativo.
-
