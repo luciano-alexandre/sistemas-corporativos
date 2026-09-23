@@ -16,7 +16,7 @@ Cada encontro corresponde a duas aulas de 45 minutos.
 | [10](encontros/encontro-10.md) | U1 | Migrations, seeds e concorrência |
 | [11](encontros/encontro-11.md) | U1 | Atividade prática de revisão dos encontros 07–10 |
 | [12](encontros/encontro-12.md) | U1 | **Dia reservado à Prática 2 (10 pontos)** |
-| [13](encontros/encontro-13.md) | U1 | Transações, consistência e auditoria |
+| [13](encontros/encontro-13.md) | U1 | Correção da Prática 2: persistência, transação, auditoria e concorrência |
 | [14](encontros/encontro-14.md) | U1 | NoSQL e persistência poliglota |
 | [15](encontros/encontro-15.md) | U1 | **Dia reservado à Prática 3 (10 pontos)** |
 | [16](encontros/encontro-16.md) | U1 | Arquiteturas limpa e hexagonal |
