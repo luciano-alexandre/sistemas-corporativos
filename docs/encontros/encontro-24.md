@@ -26,11 +26,11 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Atividade e saída esperada
 
-Incremento inicial da Prática 3.
+Modelagem de um evento de negócio e de seu processamento idempotente no projeto
+da disciplina.
 
 ## Conexão com o percurso
 
 O encontro utiliza a API e os artefatos acumulados como laboratório. Decisões
 devem explicitar contexto, alternativas, consequências e impacto nos requisitos
 funcionais e não funcionais do sistema corporativo.
-

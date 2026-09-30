@@ -19,7 +19,7 @@ práticas de entrega.
 
 - exposições dialogadas e estudos de casos organizacionais;
 - demonstrações e laboratórios sobre um projeto incremental;
-- três atividades práticas realizadas em sala;
+- duas atividades práticas realizadas em sala;
 - seminários orientados por fontes técnicas;
 - projeto final em equipe, com checkpoints, demonstração e defesa;
 - revisão por pares e registro de decisões arquiteturais (ADRs).
@@ -38,10 +38,10 @@ práticas de entrega.
 
 | Componente | Quantidade | Valor unitário | Total |
 |---|---:|---:|---:|
-| Atividade prática em sala | 3 | 10 | 30 |
+| Atividade prática em sala | 2 | 10 | 20 |
 | Seminário | 1 | 20 | 20 |
 | Projeto final | 1 | 50 | 50 |
-| **Total** | | | **100** |
+| **Total** | | | **90** |
 
 ## Recursos
 

@@ -25,11 +25,11 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Atividade e saída esperada
 
-Entrega e defesa da Prática 3 (10 pontos).
+Modelagem de uma saga para um processo do projeto, incluindo falhas,
+compensações e estados intermediários.
 
 ## Conexão com o percurso
 
 O encontro utiliza a API e os artefatos acumulados como laboratório. Decisões
 devem explicitar contexto, alternativas, consequências e impacto nos requisitos
 funcionais e não funcionais do sistema corporativo.
-

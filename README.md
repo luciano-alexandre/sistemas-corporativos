@@ -11,18 +11,18 @@ corporativo distribuído, seguro, integrável, observável e implantável.
 - `docs/`: plano, ementa, cronograma, avaliação, referências e encontros;
 - `unidades/`: detalhamento das duas unidades;
 - `aulas/`: modelo para encontros de 90 minutos;
-- `praticas/`: orientações das três atividades práticas;
+- `praticas/`: orientações das duas atividades práticas;
 - `atividades/`: roteiro do seminário;
 - `projetos/`: especificação do projeto final.
 
 
 ## Avaliação
 
-- atividades práticas em sala: **30 pontos**;
+- atividades práticas em sala: **20 pontos**;
 - seminário: **20 pontos**;
 - projeto final: **50 pontos**.
 
-Total: **100 pontos**.
+Total previsto nos componentes atuais: **90 pontos**.
 
 ## Documentos principais
 

@@ -17,8 +17,8 @@ Cada encontro corresponde a duas aulas de 45 minutos.
 | [11](encontros/encontro-11.md) | U1 | Atividade prática de revisão dos encontros 07–10 |
 | [12](encontros/encontro-12.md) | U1 | **Dia reservado à Prática 2 (10 pontos)** |
 | [13](encontros/encontro-13.md) | U1 | Correção da Prática 2: persistência, transação, auditoria e concorrência |
-| [14](encontros/encontro-14.md) | U1 | NoSQL e persistência poliglota |
-| [15](encontros/encontro-15.md) | U1 | **Dia reservado à Prática 3 (10 pontos)** |
+| [14](encontros/encontro-14.md) | U1 | Orientações, formação dos grupos e definição dos temas do seminário |
+| [15](encontros/encontro-15.md) | U1 | NoSQL e persistência poliglota |
 | [16](encontros/encontro-16.md) | U1 | Arquiteturas limpa e hexagonal |
 | [17](encontros/encontro-17.md) | U1 | Monólito modular e ADRs |
 | [18](encontros/encontro-18.md) | U1 | Modelagem de domínio |
@@ -47,7 +47,7 @@ Cada encontro corresponde a duas aulas de 45 minutos.
 
 ## Marcos de avaliação
 
-- 30 pontos em práticas: encontros 6, 12 e 15, integralmente reservados;
+- 20 pontos em práticas: encontros 6 e 12, integralmente reservados;
 - 20 pontos em seminário: encontro 20, integralmente reservado;
 - 50 pontos em projeto final: desenvolvimento até o encontro 36 e
   apresentações nos encontros 37–40.

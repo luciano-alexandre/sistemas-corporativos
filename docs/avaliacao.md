@@ -6,14 +6,12 @@
   papéis, hash de senha e testes essenciais.
 - **Prática 2 — Domínio e dados (10 pontos):** caso de uso, persistência,
   transação e registro de auditoria.
-- **Prática 3 — Integração confiável (10 pontos):** mensageria ou evento,
-  idempotência, repetição controlada e tratamento de falhas.
 - **Seminário (20 pontos):** pesquisa, estudo de caso, análise crítica e
   apresentação de um tema arquitetural.
 - **Projeto final (50 pontos):** solução, qualidade técnica, operação,
   documentação e apresentação/defesa.
 
-## Rubrica das práticas (10 pontos cada)
+## Rubrica das práticas 1 e 2 (10 pontos cada)
 
 | Critério | Pontos |
 |---|---:|
@@ -48,4 +46,3 @@ As práticas são realizadas em sala. No trabalho em equipe, todos devem dominar
 o conjunto da solução; a defesa individual pode ajustar a nota. Código ou texto
 de terceiros deve ser identificado e referenciado. Entregas devem incluir
 instruções reproduzíveis e histórico de versão.
-
