@@ -18,8 +18,8 @@ Cada encontro corresponde a duas aulas de 45 minutos.
 | [12](encontros/encontro-12.md) | U1 | **Dia reservado à Prática 2 (10 pontos)** |
 | [13](encontros/encontro-13.md) | U1 | Correção da Prática 2: persistência, transação, auditoria e concorrência |
 | [14](encontros/encontro-14.md) | U1 | Orientações, formação dos grupos e definição dos temas do seminário |
-| [15](encontros/encontro-15.md) | U1 | NoSQL e persistência poliglota |
-| [16](encontros/encontro-16.md) | U1 | Arquiteturas limpa e hexagonal |
+| [15](encontros/encontro-15.md) | U1 | Fundamentos de NoSQL e laboratório com MongoDB |
+| [16](encontros/encontro-16.md) | U1 | Integração da API NestJS com MongoDB |
 | [17](encontros/encontro-17.md) | U1 | Monólito modular e ADRs |
 | [18](encontros/encontro-18.md) | U1 | Modelagem de domínio |
 | [19](encontros/encontro-19.md) | U1 | Casos de uso, processos, regras e workflows |
