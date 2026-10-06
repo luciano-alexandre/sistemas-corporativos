@@ -163,6 +163,15 @@ O documento é semelhante a JSON, mas o MongoDB utiliza BSON, que oferece tipos
 adicionais como `ObjectId`, datas, binários e números com representações
 específicas.
 
+Neste exemplo:
+
+- `ObjectId("...")` representa o identificador único do documento;
+- `ISODate(...)` representa uma data armazenada pelo MongoDB, não uma string
+  comum;
+- `centroCusto: { ... }` cria um objeto incorporado;
+- `marcadores: [ ... ]` cria um array dentro do documento;
+- os demais pares seguem o formato `campo: valor`.
+
 ### Hierarquia visual
 
 ```mermaid
@@ -209,6 +218,10 @@ centroCusto: {
 }
 ```
 
+As chaves entre chaves formam um subdocumento. Para consultar seus campos,
+utiliza-se posteriormente a notação de ponto, como
+`"centroCusto.codigo"`.
+
 Quando uma informação possui ciclo de vida próprio, é muito compartilhada ou
 cresce sem limite, pode ser melhor guardar uma referência:
 
@@ -218,6 +231,10 @@ cresce sem limite, pode ser melhor guardar uma referência:
   centroCustoId: ObjectId("...")
 }
 ```
+
+`centroCustoId` guarda apenas o identificador de outro documento. O
+`ObjectId` não carrega automaticamente o documento relacionado nem cria uma
+restrição equivalente a uma chave estrangeira.
 
 O MongoDB não realiza automaticamente as mesmas garantias de uma chave
 estrangeira relacional. A aplicação precisa lidar conscientemente com
@@ -243,29 +260,6 @@ flowchart LR
     R -. referência .-> C["Cliente 27"]
 ```
 
-| Critério | Incorporar | Referenciar |
-|---|---|---|
-| leitura conjunta | favorece | pode exigir nova consulta |
-| atualização independente | pode duplicar alterações | favorece |
-| histórico imutável | favorece | exige cuidado |
-| conteúdo compartilhado | pode gerar duplicação | favorece |
-| crescimento sem limite | deve ser evitado | favorece separação |
-| garantia automática entre registros | não existe | também não equivale a uma FK |
-
-### Roteiro de decisão
-
-```mermaid
-flowchart TD
-    A["Os dados são normalmente lidos juntos?"] -->|não| R["Considere referência"]
-    A -->|sim| B["O conteúdo cresce sem limite?"]
-    B -->|sim| R
-    B -->|não| C["É atualizado independentemente por muitos processos?"]
-    C -->|sim| R
-    C -->|não| D["A duplicação representa um retrato histórico?"]
-    D -->|sim| I["Considere incorporar"]
-    D -->|não| E["Compare custo de duplicação e de novas consultas"]
-```
-
 ## Configuração do laboratório
 
 Crie uma pasta separada para o experimento e use o seguinte
@@ -287,6 +281,18 @@ volumes:
   mongo_data:
 ```
 
+Neste arquivo:
+
+- `services` declara os contêineres do ambiente;
+- `mongo` é o nome pelo qual o serviço será identificado;
+- `image: mongo:8` seleciona a imagem e a versão do MongoDB;
+- `environment` fornece as variáveis usadas na inicialização;
+- `MONGO_INITDB_ROOT_USERNAME` e `MONGO_INITDB_ROOT_PASSWORD` criam o
+  usuário administrativo inicial;
+- `ports` publica a porta 27017 do contêiner na máquina;
+- `volumes` associa `/data/db` ao volume persistente `mongo_data`;
+- a declaração final de `mongo_data` cria o volume gerenciado pelo Docker.
+
 As credenciais são apenas para o laboratório local. Em outros ambientes,
 utilize segredos próprios e não publique senhas no repositório.
 
@@ -297,17 +303,33 @@ docker compose up -d
 docker compose ps
 ```
 
+`docker compose up -d` cria ou inicia os serviços em segundo plano. O
+`docker compose ps` mostra os contêineres do projeto e permite verificar se o
+MongoDB está em execução.
+
 Abra o shell do MongoDB:
 
 ```bash
 docker compose exec mongo mongosh -u admin -p admin --authenticationDatabase admin
 ```
 
+O comando:
+
+- `docker compose exec mongo` executa algo dentro do serviço `mongo`;
+- `mongosh` inicia o shell interativo do MongoDB;
+- `-u admin` informa o usuário;
+- `-p admin` informa a senha usada apenas no laboratório;
+- `--authenticationDatabase admin` indica o banco no qual esse usuário foi
+  criado.
+
 Selecione o banco do laboratório:
 
 ```javascript
 use nosql_aula
 ```
+
+`use nosql_aula` seleciona o banco utilizado pelos próximos comandos. Se ele
+ainda não existir, será criado quando o primeiro documento for persistido.
 
 O banco e a coleção são materializados quando o primeiro documento é gravado.
 
@@ -329,6 +351,11 @@ db.solicitacoes.insertOne({
   criadaEm: new Date()
 })
 ```
+
+`db` representa o banco atualmente selecionado, `solicitacoes` é a coleção
+e `insertOne` grava um documento. Se a coleção ainda não existir, ela será
+criada. `new Date()` produz a data e a hora atuais, e o MongoDB cria
+automaticamente o campo `_id` quando ele não é informado.
 
 Insira vários:
 
@@ -355,6 +382,11 @@ db.solicitacoes.insertMany([
 ])
 ```
 
+`insertMany` recebe um array e insere todos os documentos apresentados. Cada
+item ganha seu próprio `_id`. O resultado informa os identificadores
+inseridos; se algum documento falhar, o comportamento também depende das opções
+da operação e das regras da coleção.
+
 ## Consultas
 
 Liste todos os documentos:
@@ -362,6 +394,9 @@ Liste todos os documentos:
 ```javascript
 db.solicitacoes.find()
 ```
+
+`find()` sem filtro seleciona todos os documentos. Em coleções grandes, ele
+deve ser combinado com filtros e limites para evitar leitura desnecessária.
 
 Filtre por igualdade e por campo aninhado:
 
@@ -372,6 +407,11 @@ db.solicitacoes.find({
   "centroCusto.codigo": "TI-DEV"
 })
 ```
+
+No primeiro `find`, o objeto `{ status: "pendente" }` é o filtro de
+igualdade. No segundo, a notação
+`"centroCusto.codigo"` acessa o campo `codigo` dentro do subdocumento
+`centroCusto`.
 
 Use operadores:
 
@@ -386,6 +426,11 @@ db.solicitacoes.find({
 })
 ```
 
+`$gte` significa “maior ou igual”. `$in` verifica se o valor pertence ao
+array informado. Campos colocados lado a lado no mesmo filtro são combinados
+por um “E” lógico; portanto, o segundo exemplo exige status pendente e uma das
+prioridades listadas.
+
 Escolha os campos retornados:
 
 ```javascript
@@ -395,6 +440,10 @@ db.solicitacoes.find(
 )
 ```
 
+O primeiro objeto continua sendo o filtro. O segundo é a projeção: o valor
+`1` inclui o campo na resposta. O MongoDB também inclui `_id` por padrão;
+para omiti-lo, acrescente `_id: 0` à projeção.
+
 Ordene e limite:
 
 ```javascript
@@ -403,6 +452,10 @@ db.solicitacoes
   .sort({ valorEstimadoCentavos: -1 })
   .limit(5)
 ```
+
+`sort` ordena o resultado; `-1` significa ordem decrescente e `1`,
+crescente. `limit(5)` restringe a resposta aos cinco primeiros documentos
+depois da ordenação. Os métodos são encadeados e atuam sobre a mesma consulta.
 
 ## Atualização e remoção
 
@@ -420,9 +473,14 @@ db.solicitacoes.deleteOne({
 })
 ```
 
-`$set` altera campos específicos. `$addToSet` adiciona um item ao array sem
-repeti-lo. Uma atualização sem filtro adequado pode modificar o documento
-errado; antes de atualizar, execute o mesmo filtro com `find`.
+`updateOne` altera somente o primeiro documento que corresponde ao filtro do
+primeiro argumento. No segundo argumento, `$set` substitui o valor de campos
+específicos e `$addToSet` adiciona um item ao array somente se ele ainda não
+existir.
+
+`deleteOne` remove o primeiro documento correspondente ao filtro. Uma
+atualização ou remoção com filtro inadequado pode atingir o documento errado;
+antes de executar a alteração, teste o mesmo filtro com `find`.
 
 ## Índices
 
@@ -436,6 +494,11 @@ db.solicitacoes.createIndex({
 })
 ```
 
+`createIndex` cria um índice composto. O valor `1` indica ordem crescente.
+A ordem dos campos é significativa: esse índice começa por `status` e depois
+organiza `centroCusto.codigo`, favorecendo consultas que utilizam esse
+prefixo.
+
 Confira os índices e o plano:
 
 ```javascript
@@ -445,6 +508,11 @@ db.solicitacoes
   .find({ status: "pendente", "centroCusto.codigo": "TI-DEV" })
   .explain("executionStats")
 ```
+
+`getIndexes` lista os índices da coleção. `explain("executionStats")`
+executa a consulta e apresenta estatísticas, como documentos examinados,
+quantidade retornada e utilização de índice. Ele ajuda a comparar o plano de
+execução com o comportamento esperado.
 
 Índices aceleram leituras, mas ocupam espaço e aumentam o custo das escritas.
 Devem ser definidos a partir das consultas reais.
@@ -502,8 +570,17 @@ db.solicitacoes.aggregate([
 ])
 ```
 
-`$match`, `$group`, `$project`, `$sort` e `$limit` são etapas comuns.
-Quando possível, filtre no início do pipeline para reduzir o volume processado.
+`aggregate` recebe um array de etapas. Neste exemplo:
+
+- `$group` reúne documentos que possuem o mesmo código de centro de custo;
+- `_id: "$centroCusto.codigo"` define o valor usado para formar cada grupo;
+- `$sum: 1` acrescenta um à quantidade para cada documento;
+- `$sum: "$valorEstimadoCentavos"` soma os valores encontrados no campo;
+- `$sort: { totalCentavos: -1 }` ordena os grupos do maior total para o menor.
+
+`$match`, `$project` e `$limit` são outras etapas comuns para filtrar,
+formatar e limitar o resultado. Quando possível, use `$match` no início para
+reduzir o volume processado pelas etapas seguintes.
 
 ## Validação da coleção
 
@@ -536,6 +613,18 @@ db.createCollection("solicitacoes_validadas", {
   }
 })
 ```
+
+`createCollection` cria explicitamente uma coleção. A opção `validator`
+define as regras avaliadas nas inserções e atualizações:
+
+- `$jsonSchema` descreve o formato aceito;
+- `bsonType: "object"` exige que cada registro seja um documento;
+- `required` enumera os campos obrigatórios;
+- `properties` descreve as regras de cada campo;
+- `bsonType: "string"` e `bsonType: "int"` verificam os tipos BSON;
+- `minLength` define o tamanho mínimo do texto;
+- `enum` restringe o campo aos valores apresentados;
+- `minimum: 0` impede números negativos.
 
 As regras protegem o banco contra documentos inválidos, inclusive quando os
 dados são inseridos fora da aplicação.

@@ -1,47 +1,77 @@
-# Encontro 16 — Integração do projeto com MongoDB
+# Encontro 16 — Prática de revisão: MongoDB com Docker
 
-## Tema
+## Objetivo
 
-Adicionar MongoDB à API NestJS desenvolvida na disciplina.
+Revisar, de forma prática e guiada, os fundamentos de NoSQL estudados no
+encontro 15. Ao final, o estudante terá configurado um MongoDB com Docker,
+modelado uma coleção, inserido e consultado documentos, realizado atualizações,
+criado índices, executado uma agregação e configurado validação.
 
-## Objetivos
+Esta prática utiliza somente Docker, MongoDB e `mongosh`. A integração com o
+projeto NestJS será realizada no encontro 17.
 
-- Configurar o MongoDB junto aos serviços existentes.
-- Conectar a aplicação NestJS usando Mongoose.
-- Criar schema, DTO, service, controller e módulo.
-- Associar documentos a solicitações existentes no PostgreSQL.
-- Proteger as novas rotas com JWT.
-- Criar índices e validar os dados gravados.
-- Testar a integração e os comportamentos de erro.
+## Situação
 
-## Funcionalidade
+Uma equipe de suporte precisa registrar chamados internos. Os chamados podem
+ter informações comuns, como título, prioridade e status, mas algumas
+categorias possuem detalhes próprios:
 
-A API passará a registrar anotações de acompanhamento das solicitações. Uma
-anotação conterá texto, marcadores e dados adicionais que podem variar conforme
-o tipo de solicitação.
+- chamados de equipamento podem informar patrimônio e localização;
+- chamados de software podem informar sistema e versão;
+- chamados de acesso podem informar recurso e perfil solicitado.
 
-As solicitações, aprovações, centros de custo e reservas continuam no
-PostgreSQL. O MongoDB será usado somente para as anotações. A auditoria da
-aprovação criada nos encontros anteriores também deve ser preservada.
+Além de guardar formatos ligeiramente diferentes, a equipe precisa:
 
-Endpoints:
+- consultar chamados por status, categoria e prioridade;
+- localizar chamados por marcador;
+- registrar mudanças no histórico;
+- contar chamados por categoria;
+- impedir documentos sem os campos essenciais.
 
-```http
-POST /solicitacoes/:id/anotacoes
-GET /solicitacoes/:id/anotacoes
+O modelo documental será usado para representar essa situação.
+
+## Resultado esperado
+
+```mermaid
+flowchart LR
+    D["Docker Compose"] --> M["MongoDB"]
+    U["Estudante"] --> S["mongosh"]
+    S --> M
+    M --> B["Banco suporte"]
+    B --> C["Coleção chamados"]
+    C --> Q["consultas"]
+    C --> I["índices"]
+    C --> A["agregações"]
+    C --> V["validação"]
 ```
 
-## Passo 1 — Adicionar o MongoDB ao ambiente
+## Antes de começar
 
-No `compose.yaml` do projeto, acrescente:
+Confirme que Docker e Docker Compose estão disponíveis:
+
+```bash
+docker --version
+docker compose version
+```
+
+O primeiro comando mostra a versão do Docker Engine. O segundo confirma que o
+subcomando `compose` pode ser usado para administrar o ambiente definido em
+YAML. Se algum deles falhar, corrija a instalação antes de continuar.
+
+Crie uma pasta exclusiva para a prática. Ela não precisa fazer parte do projeto
+NestJS.
+
+## Passo 1 — Preparar o Docker Compose
+
+Crie um arquivo `compose.yaml`:
 
 ```yaml
 services:
   mongo:
     image: mongo:8
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
     ports:
       - "27017:27017"
     volumes:
@@ -51,441 +81,665 @@ volumes:
   mongo_data:
 ```
 
-Combine esse trecho com os serviços e volumes já existentes. No `.env` local:
+O arquivo determina como o laboratório será executado:
 
-```dotenv
-MONGO_USER=app
-MONGO_PASSWORD=app
-MONGO_DATABASE=solicitacoes
-MONGODB_URI=mongodb://app:app@mongo:27017/solicitacoes?authSource=admin
-```
+- `services` reúne os contêineres;
+- `mongo` é o nome do serviço;
+- `image: mongo:8` utiliza a versão 8 da imagem oficial;
+- `environment` define o usuário administrativo inicial;
+- `ports` permite acessar o MongoDB pela porta 27017;
+- `mongo_data:/data/db` mantém os dados fora do ciclo de vida do contêiner;
+- a seção final declara o volume gerenciado pelo Docker.
 
-No `.env.example`, mantenha apenas valores de exemplo. O arquivo `.env`
-continua ignorado pelo Git.
+As credenciais são didáticas e só devem ser usadas localmente.
 
-Inicie e confira:
+## Passo 2 — Iniciar e observar o serviço
 
 ```bash
-docker compose up -d mongo
+docker compose up -d
 docker compose ps
 docker compose logs mongo
 ```
 
-## Passo 2 — Instalar a integração do NestJS
+`up -d` cria e inicia o serviço em segundo plano. `ps` mostra seu estado.
+`logs mongo` permite observar a inicialização e diagnosticar erros.
+
+O resultado esperado em `ps` é o serviço `mongo` em execução. Se ele
+encerrar, procure nos logs mensagens sobre porta ocupada, volume ou
+configuração.
+
+## Passo 3 — Entrar no shell
 
 ```bash
-npm install @nestjs/mongoose mongoose
+docker compose exec mongo mongosh -u admin -p admin --authenticationDatabase admin
 ```
 
-Se a aplicação é executada apenas pelo contêiner, execute o comando no serviço
-da API conforme a configuração do projeto.
+Neste comando:
 
-## Passo 3 — Configurar a conexão
+- `exec mongo` executa um programa dentro do serviço;
+- `mongosh` abre o shell do MongoDB;
+- `-u` e `-p` fornecem usuário e senha;
+- `--authenticationDatabase admin` informa onde o usuário foi criado.
 
-No `AppModule`, acrescente o módulo do Mongoose:
-
-```ts
-import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
-import { AnotacoesModule } from './anotacoes/anotacoes.module';
-
-@Module({
-  imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
-    MongooseModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        uri: config.getOrThrow<string>('MONGODB_URI'),
-      }),
-    }),
-    AnotacoesModule,
-  ],
-})
-export class AppModule {}
-```
-
-Combine o exemplo com os módulos existentes. Não remova a configuração do
-TypeORM nem os módulos de autenticação e solicitações.
-
-## Passo 4 — Criar o schema
-
-Crie `src/anotacoes/anotacao.schema.ts`:
-
-```ts
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, SchemaTypes } from 'mongoose';
-
-export type AnotacaoDocument = HydratedDocument<Anotacao>;
-
-@Schema({
-  collection: 'anotacoes',
-  timestamps: {
-    createdAt: 'criadaEm',
-    updatedAt: 'atualizadaEm',
-  },
-})
-export class Anotacao {
-  @Prop({ required: true, index: true })
-  solicitacaoId: number;
-
-  @Prop({ required: true })
-  autorId: number;
-
-  @Prop({
-    required: true,
-    minlength: 3,
-    maxlength: 1000,
-  })
-  texto: string;
-
-  @Prop({
-    type: [String],
-    default: [],
-  })
-  marcadores: string[];
-
-  @Prop({
-    type: SchemaTypes.Mixed,
-    default: {},
-  })
-  dadosAdicionais: Record<string, unknown>;
-
-  criadaEm: Date;
-  atualizadaEm: Date;
-}
-
-export const AnotacaoSchema =
-  SchemaFactory.createForClass(Anotacao);
-
-AnotacaoSchema.index({
-  solicitacaoId: 1,
-  criadaEm: -1,
-});
-```
-
-`dadosAdicionais` permite guardar informações específicas sem alterar o
-schema a cada variação. Ele não deve receber senhas, tokens ou dados sem
-necessidade definida.
-
-## Passo 5 — Criar o DTO
-
-Crie `src/anotacoes/dto/criar-anotacao.dto.ts`:
-
-```ts
-import {
-  ArrayMaxSize,
-  IsArray,
-  IsObject,
-  IsOptional,
-  IsString,
-  MaxLength,
-  MinLength,
-} from 'class-validator';
-
-export class CriarAnotacaoDto {
-  @IsString()
-  @MinLength(3)
-  @MaxLength(1000)
-  texto: string;
-
-  @IsOptional()
-  @IsArray()
-  @ArrayMaxSize(10)
-  @IsString({ each: true })
-  @MaxLength(30, { each: true })
-  marcadores?: string[];
-
-  @IsOptional()
-  @IsObject()
-  dadosAdicionais?: Record<string, unknown>;
-}
-```
-
-O identificador da solicitação vem da URL e o autor vem do JWT. Nenhum dos dois
-deve ser aceito livremente no corpo.
-
-## Passo 6 — Implementar o service
-
-Crie `src/anotacoes/anotacoes.service.ts`:
-
-```ts
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Model } from 'mongoose';
-import { Repository } from 'typeorm';
-import { Solicitacao } from '../solicitacoes/solicitacao.entity';
-import {
-  Anotacao,
-  AnotacaoDocument,
-} from './anotacao.schema';
-import { CriarAnotacaoDto } from './dto/criar-anotacao.dto';
-
-@Injectable()
-export class AnotacoesService {
-  constructor(
-    @InjectModel(Anotacao.name)
-    private readonly anotacoes: Model<AnotacaoDocument>,
-    @InjectRepository(Solicitacao)
-    private readonly solicitacoes: Repository<Solicitacao>,
-  ) {}
-
-  private async confirmarSolicitacao(id: number) {
-    const existe = await this.solicitacoes.exists({
-      where: { id },
-    });
-
-    if (!existe) {
-      throw new NotFoundException('Solicitação não encontrada');
-    }
-  }
-
-  async criar(
-    solicitacaoId: number,
-    autorId: number,
-    dto: CriarAnotacaoDto,
-  ) {
-    await this.confirmarSolicitacao(solicitacaoId);
-
-    return this.anotacoes.create({
-      solicitacaoId,
-      autorId,
-      texto: dto.texto,
-      marcadores: dto.marcadores ?? [],
-      dadosAdicionais: dto.dadosAdicionais ?? {},
-    });
-  }
-
-  async listar(solicitacaoId: number) {
-    await this.confirmarSolicitacao(solicitacaoId);
-
-    return this.anotacoes
-      .find({ solicitacaoId })
-      .sort({ criadaEm: -1 })
-      .lean()
-      .exec();
-  }
-}
-```
-
-A existência da solicitação é conferida antes da gravação. O MongoDB não cria
-uma chave estrangeira para o registro do PostgreSQL, portanto essa regra precisa
-ser aplicada pela API.
-
-## Passo 7 — Criar o controller
-
-Crie `src/anotacoes/anotacoes.controller.ts`:
-
-```ts
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  ParseIntPipe,
-  Post,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { AnotacoesService } from './anotacoes.service';
-import { CriarAnotacaoDto } from './dto/criar-anotacao.dto';
-
-type RequisicaoAutenticada = {
-  user: {
-    id: number;
-    papel: string;
-  };
-};
-
-@UseGuards(JwtAuthGuard)
-@Controller('solicitacoes/:solicitacaoId/anotacoes')
-export class AnotacoesController {
-  constructor(private readonly service: AnotacoesService) {}
-
-  @Post()
-  criar(
-    @Param('solicitacaoId', ParseIntPipe) solicitacaoId: number,
-    @Body() dto: CriarAnotacaoDto,
-    @Req() request: RequisicaoAutenticada,
-  ) {
-    return this.service.criar(
-      solicitacaoId,
-      request.user.id,
-      dto,
-    );
-  }
-
-  @Get()
-  listar(
-    @Param('solicitacaoId', ParseIntPipe) solicitacaoId: number,
-  ) {
-    return this.service.listar(solicitacaoId);
-  }
-}
-```
-
-## Passo 8 — Criar o módulo
-
-Crie `src/anotacoes/anotacoes.module.ts`:
-
-```ts
-import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Solicitacao } from '../solicitacoes/solicitacao.entity';
-import {
-  Anotacao,
-  AnotacaoSchema,
-} from './anotacao.schema';
-import { AnotacoesController } from './anotacoes.controller';
-import { AnotacoesService } from './anotacoes.service';
-
-@Module({
-  imports: [
-    MongooseModule.forFeature([
-      {
-        name: Anotacao.name,
-        schema: AnotacaoSchema,
-      },
-    ]),
-    TypeOrmModule.forFeature([Solicitacao]),
-  ],
-  controllers: [AnotacoesController],
-  providers: [AnotacoesService],
-})
-export class AnotacoesModule {}
-```
-
-Confirme que `AnotacoesModule` foi importado no `AppModule`.
-
-## Passo 9 — Iniciar e conferir as conexões
-
-```bash
-docker compose up --build
-docker compose logs api
-```
-
-A API deve iniciar somente depois de conseguir carregar suas configurações. Se
-a conexão falhar, confira:
-
-- nome do serviço `mongo`;
-- usuário, senha e `authSource`;
-- nome das variáveis;
-- rede do Docker Compose;
-- disponibilidade do contêiner.
-
-Não use `localhost` na URI quando a API e o MongoDB estão em contêineres
-diferentes do mesmo Compose; use o nome do serviço.
-
-## Passo 10 — Testar a criação
-
-Use uma solicitação existente:
-
-```http
-POST /solicitacoes/1/anotacoes
-Authorization: Bearer TOKEN_VALIDO
-Content-Type: application/json
-
-{
-  "texto": "Fornecedor confirmou a disponibilidade do equipamento.",
-  "marcadores": ["fornecedor", "acompanhamento"],
-  "dadosAdicionais": {
-    "previsaoDias": 7,
-    "canal": "email"
-  }
-}
-```
-
-O resultado deve conter o identificador gerado pelo MongoDB, o ID da
-solicitação, o autor obtido do token e as datas.
-
-## Passo 11 — Testar a listagem
-
-```http
-GET /solicitacoes/1/anotacoes
-Authorization: Bearer TOKEN_VALIDO
-```
-
-As anotações devem aparecer da mais recente para a mais antiga.
-
-Confira diretamente no MongoDB:
-
-```bash
-docker compose exec mongo mongosh -u app -p app --authenticationDatabase admin
-```
+No shell, confira os bancos:
 
 ```javascript
-use solicitacoes
+show dbs
+```
 
-db.anotacoes.find({
-  solicitacaoId: 1
-}).sort({
-  criadaEm: -1
+`show dbs` lista os bancos que já possuem dados persistidos.
+
+## Passo 4 — Selecionar o banco
+
+```javascript
+use suporte
+```
+
+`use suporte` seleciona o banco para os próximos comandos. Ele ainda pode não
+aparecer em `show dbs`, pois o MongoDB só o materializa após a primeira
+gravação.
+
+Confira a seleção:
+
+```javascript
+db.getName()
+```
+
+`db` representa o banco atual e `getName()` retorna seu nome. O resultado
+deve ser `suporte`.
+
+## Passo 5 — Planejar o documento
+
+Antes de inserir, observe a estrutura pretendida:
+
+```mermaid
+flowchart TB
+    C["Chamado"]
+    C --> T["título"]
+    C --> CAT["categoria"]
+    C --> P["prioridade"]
+    C --> S["status"]
+    C --> SOL["solicitante"]
+    SOL --> N["nome"]
+    SOL --> SET["setor"]
+    C --> M["marcadores"]
+    C --> D["detalhes variáveis"]
+    C --> H["histórico"]
+```
+
+O solicitante será incorporado porque seus dados são exibidos junto ao chamado.
+O histórico será um array de subdocumentos. `detalhes` aceitará campos
+diferentes conforme a categoria.
+
+## Passo 6 — Inserir o primeiro chamado
+
+```javascript
+db.chamados.insertOne({
+  titulo: "Monitor sem imagem",
+  categoria: "equipamento",
+  prioridade: "alta",
+  status: "aberto",
+  solicitante: {
+    nome: "Ana",
+    setor: "Financeiro"
+  },
+  marcadores: ["monitor", "hardware"],
+  detalhes: {
+    patrimonio: "PAT-2048",
+    localizacao: "Sala 12"
+  },
+  historico: [
+    {
+      status: "aberto",
+      instante: new Date(),
+      observacao: "Chamado registrado"
+    }
+  ],
+  criadoEm: new Date()
 })
-
-db.anotacoes.getIndexes()
 ```
 
-## Passo 12 — Testar erros e segurança
+`db.chamados` seleciona a coleção e `insertOne` insere um documento.
+`new Date()` grava o instante atual como data BSON. Como `_id` não foi
+informado, o MongoDB gera um `ObjectId`.
 
-Execute:
+Observe a resposta:
 
-| Caso | Resultado esperado |
+- `acknowledged: true` indica que a escrita foi confirmada;
+- `insertedId` contém o identificador criado.
+
+## Passo 7 — Inserir documentos diferentes
+
+```javascript
+db.chamados.insertMany([
+  {
+    titulo: "Erro ao abrir sistema acadêmico",
+    categoria: "software",
+    prioridade: "media",
+    status: "em_atendimento",
+    solicitante: {
+      nome: "Bruno",
+      setor: "Secretaria"
+    },
+    marcadores: ["sistema", "navegador"],
+    detalhes: {
+      sistema: "Portal Acadêmico",
+      versao: "2026.3",
+      navegador: "Firefox"
+    },
+    historico: [
+      {
+        status: "aberto",
+        instante: new Date(),
+        observacao: "Chamado registrado"
+      },
+      {
+        status: "em_atendimento",
+        instante: new Date(),
+        observacao: "Análise iniciada"
+      }
+    ],
+    criadoEm: new Date()
+  },
+  {
+    titulo: "Solicitação de acesso ao relatório",
+    categoria: "acesso",
+    prioridade: "baixa",
+    status: "aberto",
+    solicitante: {
+      nome: "Carla",
+      setor: "Compras"
+    },
+    marcadores: ["permissao", "relatorio"],
+    detalhes: {
+      recurso: "Relatório de fornecedores",
+      perfilSolicitado: "leitura"
+    },
+    historico: [
+      {
+        status: "aberto",
+        instante: new Date(),
+        observacao: "Aguardando autorização"
+      }
+    ],
+    criadoEm: new Date()
+  },
+  {
+    titulo: "Teclado com defeito",
+    categoria: "equipamento",
+    prioridade: "media",
+    status: "fechado",
+    solicitante: {
+      nome: "Diego",
+      setor: "Biblioteca"
+    },
+    marcadores: ["hardware"],
+    detalhes: {
+      patrimonio: "PAT-3100"
+    },
+    historico: [
+      {
+        status: "fechado",
+        instante: new Date(),
+        observacao: "Equipamento substituído"
+      }
+    ],
+    criadoEm: new Date()
+  }
+])
+```
+
+`insertMany` recebe um array e insere vários documentos. Observe que
+`detalhes` não possui o mesmo formato em todos eles. Essa flexibilidade é
+intencional, mas os campos essenciais permanecem consistentes.
+
+## Passo 8 — Visualizar os documentos
+
+```javascript
+db.chamados.find()
+```
+
+`find()` sem argumentos seleciona todos os documentos. Use esse comando
+apenas em uma coleção pequena de laboratório.
+
+Conte os documentos:
+
+```javascript
+db.chamados.countDocuments()
+```
+
+`countDocuments()` conta os documentos que correspondem ao filtro. Sem
+argumento, conta toda a coleção. O resultado esperado é `4`.
+
+## Passo 9 — Praticar filtros
+
+Chamados abertos:
+
+```javascript
+db.chamados.find({ status: "aberto" })
+```
+
+O objeto passado ao `find` é o filtro. Aqui é usada igualdade.
+
+Chamados abertos e de alta prioridade:
+
+```javascript
+db.chamados.find({
+  status: "aberto",
+  prioridade: "alta"
+})
+```
+
+Campos no mesmo objeto são combinados por “E” lógico.
+
+Chamados de prioridade alta ou média:
+
+```javascript
+db.chamados.find({
+  prioridade: { $in: ["alta", "media"] }
+})
+```
+
+`$in` aceita documentos cujo valor pertença à lista.
+
+Chamados do setor Financeiro:
+
+```javascript
+db.chamados.find({
+  "solicitante.setor": "Financeiro"
+})
+```
+
+A notação de ponto acessa um campo dentro do subdocumento.
+
+Chamados com o marcador `hardware`:
+
+```javascript
+db.chamados.find({
+  marcadores: "hardware"
+})
+```
+
+Ao comparar um campo de array com um valor simples, o MongoDB seleciona os
+documentos cujo array contém esse valor.
+
+## Passo 10 — Projetar, ordenar e limitar
+
+```javascript
+db.chamados
+  .find(
+    { status: "aberto" },
+    {
+      _id: 0,
+      titulo: 1,
+      categoria: 1,
+      prioridade: 1
+    }
+  )
+  .sort({ prioridade: 1 })
+  .limit(10)
+```
+
+O primeiro objeto do `find` filtra. O segundo projeta os campos:
+
+- `1` inclui um campo;
+- `_id: 0` remove o identificador da exibição;
+- `sort({ prioridade: 1 })` ordena em ordem crescente;
+- `limit(10)` limita a dez documentos.
+
+Como prioridade é texto, a ordenação é alfabética, não uma ordem de negócio.
+Para ordenar como baixa, média e alta, seria necessário armazenar um peso ou
+montar uma transformação.
+
+## Passo 11 — Atualizar um chamado
+
+```javascript
+db.chamados.updateOne(
+  {
+    titulo: "Monitor sem imagem",
+    status: "aberto"
+  },
+  {
+    $set: {
+      status: "em_atendimento",
+      prioridade: "media"
+    },
+    $addToSet: {
+      marcadores: "triagem"
+    },
+    $push: {
+      historico: {
+        status: "em_atendimento",
+        instante: new Date(),
+        observacao: "Técnico responsável definido"
+      }
+    }
+  }
+)
+```
+
+`updateOne` altera o primeiro documento encontrado. O filtro inclui título e
+status para evitar atualizar um registro inesperado:
+
+- `$set` substitui campos específicos;
+- `$addToSet` adiciona o marcador apenas se ainda não existir;
+- `$push` acrescenta uma nova entrada ao final do array.
+
+Confira o resultado:
+
+```javascript
+db.chamados.findOne({
+  titulo: "Monitor sem imagem"
+})
+```
+
+`findOne` retorna somente o primeiro documento correspondente.
+
+## Passo 12 — Praticar remoção com segurança
+
+Crie um registro descartável:
+
+```javascript
+db.chamados.insertOne({
+  titulo: "Registro temporário",
+  categoria: "teste",
+  prioridade: "baixa",
+  status: "aberto",
+  solicitante: {
+    nome: "Laboratório",
+    setor: "Teste"
+  },
+  marcadores: [],
+  detalhes: {},
+  historico: [],
+  criadoEm: new Date()
+})
+```
+
+Antes de remover, confira o filtro:
+
+```javascript
+db.chamados.find({
+  titulo: "Registro temporário"
+})
+```
+
+Depois remova:
+
+```javascript
+db.chamados.deleteOne({
+  titulo: "Registro temporário"
+})
+```
+
+`deleteOne` remove somente o primeiro documento correspondente. A resposta
+deve apresentar `deletedCount: 1`. Sempre teste o filtro com `find` antes de
+uma remoção.
+
+## Passo 13 — Criar e observar um índice
+
+Primeiro examine uma consulta:
+
+```javascript
+db.chamados
+  .find({
+    status: "aberto",
+    categoria: "acesso"
+  })
+  .explain("executionStats")
+```
+
+`explain("executionStats")` apresenta o plano e as estatísticas. Em uma
+coleção pequena pode aparecer `COLLSCAN`, indicando varredura da coleção.
+
+Crie o índice:
+
+```javascript
+db.chamados.createIndex({
+  status: 1,
+  categoria: 1
+})
+```
+
+`createIndex` cria um índice composto. O valor `1` representa ordem
+crescente. A ordem importa: o índice começa por `status` e depois por
+`categoria`.
+
+Liste os índices e execute novamente o `explain`:
+
+```javascript
+db.chamados.getIndexes()
+
+db.chamados
+  .find({
+    status: "aberto",
+    categoria: "acesso"
+  })
+  .explain("executionStats")
+```
+
+`getIndexes` mostra os índices existentes. Depois da criação, o plano pode
+apresentar `IXSCAN`. Em uma coleção tão pequena, o otimizador ainda pode
+preferir outra estratégia; o objetivo é aprender a comparar os planos.
+
+## Passo 14 — Criar uma agregação
+
+Conte chamados por categoria:
+
+```javascript
+db.chamados.aggregate([
+  {
+    $group: {
+      _id: "$categoria",
+      quantidade: { $sum: 1 }
+    }
+  },
+  {
+    $sort: {
+      quantidade: -1
+    }
+  }
+])
+```
+
+`aggregate` recebe um pipeline:
+
+- `$group` forma um grupo para cada categoria;
+- `_id: "$categoria"` define a chave do agrupamento;
+- `$sum: 1` conta um para cada documento;
+- `$sort` organiza o resultado;
+- `-1` indica ordem decrescente.
+
+Agora conte apenas os chamados que não estão fechados:
+
+```javascript
+db.chamados.aggregate([
+  {
+    $match: {
+      status: { $ne: "fechado" }
+    }
+  },
+  {
+    $group: {
+      _id: "$categoria",
+      quantidade: { $sum: 1 }
+    }
+  }
+])
+```
+
+`$match` filtra antes do agrupamento e `$ne` significa “diferente de”.
+Filtrar cedo reduz o número de documentos processados nas etapas seguintes.
+
+## Passo 15 — Criar uma coleção validada
+
+A coleção atual foi criada sem regras estruturais. Crie outra coleção:
+
+```javascript
+db.createCollection("chamados_validados", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: [
+        "titulo",
+        "categoria",
+        "prioridade",
+        "status",
+        "solicitante",
+        "criadoEm"
+      ],
+      properties: {
+        titulo: {
+          bsonType: "string",
+          minLength: 5,
+          maxLength: 150
+        },
+        categoria: {
+          enum: ["equipamento", "software", "acesso"]
+        },
+        prioridade: {
+          enum: ["baixa", "media", "alta"]
+        },
+        status: {
+          enum: [
+            "aberto",
+            "em_atendimento",
+            "fechado"
+          ]
+        },
+        solicitante: {
+          bsonType: "object",
+          required: ["nome", "setor"]
+        },
+        marcadores: {
+          bsonType: "array"
+        },
+        criadoEm: {
+          bsonType: "date"
+        }
+      }
+    }
+  },
+  validationAction: "error"
+})
+```
+
+As principais opções são:
+
+- `createCollection`: cria a coleção explicitamente;
+- `validator`: define as regras;
+- `$jsonSchema`: descreve o formato permitido;
+- `bsonType`: verifica o tipo BSON;
+- `required`: lista campos obrigatórios;
+- `properties`: define regras por campo;
+- `enum`: limita os valores;
+- `validationAction: "error"`: rejeita documentos inválidos.
+
+## Passo 16 — Testar a validação
+
+Tente inserir um documento inválido:
+
+```javascript
+db.chamados_validados.insertOne({
+  titulo: "Oi",
+  categoria: "categoria_inexistente",
+  prioridade: "urgente"
+})
+```
+
+A gravação deve ser recusada porque faltam campos obrigatórios, o título é
+curto e os valores não pertencem aos `enum`.
+
+Depois insira um documento válido:
+
+```javascript
+db.chamados_validados.insertOne({
+  titulo: "Instalação de editor de texto",
+  categoria: "software",
+  prioridade: "baixa",
+  status: "aberto",
+  solicitante: {
+    nome: "Elisa",
+    setor: "Comunicação"
+  },
+  marcadores: ["instalacao"],
+  criadoEm: new Date()
+})
+```
+
+A operação deve ser confirmada. A comparação mostra que flexibilidade e
+validação podem coexistir.
+
+## Passo 17 — Confirmar a persistência do volume
+
+Saia do `mongosh`:
+
+```javascript
+exit
+```
+
+Pare e recrie o contêiner sem remover o volume:
+
+```bash
+docker compose down
+docker compose up -d
+```
+
+`down` remove os contêineres e a rede do Compose, mas preserva o volume
+nomeado. Entre novamente no `mongosh` e consulte:
+
+```javascript
+use suporte
+db.chamados.countDocuments()
+```
+
+Os documentos devem continuar disponíveis.
+
+Não execute `docker compose down --volumes` se quiser preservar os dados.
+Essa opção também remove o volume.
+
+## Passo 18 — Revisar as decisões
+
+Preencha a tabela:
+
+| Decisão | Justificativa no exercício |
 |---|---|
-| criar sem token | `401 Unauthorized` |
-| listar sem token | `401 Unauthorized` |
-| texto vazio ou longo demais | `400 Bad Request` |
-| mais de dez marcadores | `400 Bad Request` |
-| solicitação inexistente | `404 Not Found` |
-| criação válida | documento persistido |
-| listagem válida | documentos ordenados |
+| incorporar solicitante | é exibido junto ao chamado e preserva o contexto registrado |
+| usar array em marcadores | um chamado pode possuir vários valores simples |
+| usar array em histórico | mantém uma sequência de mudanças |
+| permitir detalhes variáveis | cada categoria possui atributos próprios |
+| criar índice composto | a consulta combina status e categoria |
+| validar campos essenciais | flexibilidade não deve permitir registros inúteis |
 
-Confirme que o cliente não consegue escolher `autorId`, `solicitacaoId` ou
-datas por meio do corpo.
+Depois responda:
 
-## Passo 13 — Observar limites da integração
+1. Qual informação pode ficar desatualizada por ter sido incorporada?
+2. O histórico poderia crescer sem limite? Como lidar com isso?
+3. Qual consulta justificaria um índice em `marcadores`?
+4. Quais campos devem permanecer obrigatórios em todas as categorias?
+5. Em qual situação esse modelo documental deixaria de ser adequado?
 
-A consulta ao PostgreSQL e a gravação no MongoDB não participam da mesma
-transação. Neste caso, a anotação só é criada depois que a existência da
-solicitação é confirmada, mas a solicitação ainda poderia ser removida entre as
-duas operações.
+## Verificação final
 
-Para esta funcionalidade de acompanhamento, aceite essa limitação e impeça a
-remoção física de solicitações, mantendo seu histórico. Processos críticos,
-como aprovação e reserva de saldo, continuam inteiramente no PostgreSQL.
-
-Também evite copiar para a anotação informações que mudam frequentemente. O
-documento guarda o `solicitacaoId`; os demais dados atuais continuam sendo
-consultados em sua fonte original.
-
-## Exercício
-
-Acrescente um filtro opcional à listagem:
-
-```http
-GET /solicitacoes/:id/anotacoes?marcador=fornecedor
-```
-
-O filtro deve:
-
-1. ser validado por um DTO de query;
-2. limitar o marcador a 30 caracteres;
-3. executar a seleção no MongoDB;
-4. preservar a ordenação por data;
-5. retornar uma lista vazia quando não houver correspondência;
-6. continuar retornando `404` quando a solicitação não existir.
-
-Teste também uma anotação com `dadosAdicionais` diferentes dos exemplos para
-observar a flexibilidade do documento.
+- [ ] o serviço MongoDB inicia pelo Docker Compose;
+- [ ] o volume preserva os dados;
+- [ ] o banco `suporte` e a coleção `chamados` existem;
+- [ ] foram inseridos documentos com detalhes diferentes;
+- [ ] filtros simples, compostos, aninhados e por array funcionam;
+- [ ] uma atualização acrescenta uma entrada ao histórico;
+- [ ] um documento temporário foi removido com filtro conferido;
+- [ ] o índice composto foi criado e observado com `explain`;
+- [ ] a agregação conta documentos por categoria;
+- [ ] a coleção validada rejeita um documento inválido;
+- [ ] as decisões de incorporação, arrays e índices foram justificadas.
 
 ## Síntese
 
-A integração acrescentou MongoDB ao ambiente, configurou a conexão pelo
-NestJS, criou documentos validados e relacionou as anotações às solicitações.
-O PostgreSQL continua responsável pelas operações transacionais já existentes,
-enquanto o novo módulo atende uma funcionalidade com dados flexíveis e
-consultas simples por solicitação.
+A prática mostrou que utilizar MongoDB envolve mais do que inserir objetos
+parecidos com JSON. Foi necessário modelar conforme as consultas, compreender
+subdocumentos e arrays, testar filtros, atualizar documentos com operadores,
+analisar índices, construir agregações, validar a coleção e preservar os dados
+com volume Docker.
+
+No encontro 17, esses fundamentos serão aplicados na integração do MongoDB com
+a API NestJS desenvolvida na disciplina.
