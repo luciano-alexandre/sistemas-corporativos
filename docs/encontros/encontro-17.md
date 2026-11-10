@@ -57,9 +57,9 @@ esses arquivos aparecem no computador como pertencentes ao `root`.
 
 ```mermaid
 flowchart LR
-    U["Usuário do computador<br/>UID 1000"] --> D["Docker sem sudo"]
-    D --> C["Processo no contêiner<br/>UID 0 — root"]
-    C --> F["Arquivo no volume<br/>pertence ao root"]
+    U["Usuário do computador — UID 1000"] --> D["Docker sem sudo"]
+    D --> C["Processo no contêiner — UID 0 root"]
+    C --> F["Arquivo no volume pertence ao root"]
 ```
 
 A solução é iniciar o serviço da API com o mesmo UID e GID do usuário atual.
@@ -100,7 +100,7 @@ computador.
 
 Acrescente os valores obtidos por `id -u` e `id -g`:
 
-```dotenv
+```ini
 LOCAL_UID=1000
 LOCAL_GID=1000
 ```
@@ -112,7 +112,7 @@ Compose usará essa identidade ao iniciar o processo da API.
 
 Documente as variáveis:
 
-```dotenv
+```ini
 LOCAL_UID=1000
 LOCAL_GID=1000
 ```
@@ -208,7 +208,7 @@ Preserve o nome do volume PostgreSQL já existente. Não crie duas seções
 
 **Arquivo:** `.env`
 
-```dotenv
+```ini
 MONGO_USER=app
 MONGO_PASSWORD=app
 MONGO_DATABASE=solicitacoes
@@ -228,7 +228,7 @@ aponta para a própria API.
 
 **Arquivo:** `.env.example`
 
-```dotenv
+```ini
 MONGO_USER=usuario_local
 MONGO_PASSWORD=senha_local
 MONGO_DATABASE=solicitacoes
@@ -237,7 +237,7 @@ MONGODB_URI=mongodb://usuario_local:senha_local@mongo:27017/solicitacoes?authSou
 
 **Arquivo:** `.gitignore`
 
-```gitignore
+```text
 .env
 ```
 
@@ -309,7 +309,7 @@ docker compose run --rm api npm install @nestjs/mongoose mongoose
 
 **Novo arquivo:** `src/anotacoes/anotacao.schema.ts`
 
-```ts
+```typescript
 import {
   Prop,
   Schema,
@@ -334,9 +334,9 @@ export type AnotacaoDocument =
 
 ```mermaid
 flowchart LR
-    C["Classe Anotacao<br/>tipos no código"] --> F["SchemaFactory"]
-    F --> S["Schema Mongoose<br/>regras em execução"]
-    S --> D["Documento BSON<br/>persistido no MongoDB"]
+    C["Classe Anotacao — tipos no código"] --> F["SchemaFactory"]
+    F --> S["Schema Mongoose — regras em execução"]
+    S --> D["Documento BSON persistido no MongoDB"]
 ```
 
 A classe ajuda o TypeScript durante o desenvolvimento, mas seus tipos deixam de
@@ -350,7 +350,7 @@ resultado efetivamente armazenado.
 
 Após o tipo, acrescente:
 
-```ts
+```typescript
 @Schema({
   collection: 'anotacoes',
   timestamps: {
@@ -392,7 +392,7 @@ documento é atualizado por operações que respeitam os timestamps do Mongoose.
 
 Dentro da classe, antes das datas:
 
-```ts
+```typescript
   @Prop({ required: true })
   solicitacaoId: number;
 
@@ -409,7 +409,7 @@ para o ID numérico do PostgreSQL e `autorId` virá do JWT.
 
 Ainda dentro da classe:
 
-```ts
+```typescript
   @Prop({
     required: true,
     minlength: 3,
@@ -453,7 +453,7 @@ aplicar às suas propriedades a mesma validação declarada nos outros campos.
 
 Depois da classe:
 
-```ts
+```typescript
 export const AnotacaoSchema =
   SchemaFactory.createForClass(Anotacao);
 
@@ -472,7 +472,7 @@ Visualmente, o índice acompanha a consulta:
 
 ```mermaid
 flowchart LR
-    Q["solicitacaoId = 12<br/>ordenar criadaEm desc."] --> I["Índice composto"]
+    Q["solicitacaoId = 12 e criadaEm decrescente"] --> I["Índice composto"]
     I --> A["12 — 10:30"]
     I --> B["12 — 09:15"]
     I --> C["12 — 08:40"]
@@ -486,7 +486,7 @@ solicitação e já as encontra na ordem necessária. Um índice apenas em
 
 **Novo arquivo:** `src/anotacoes/dto/criar-anotacao.dto.ts`
 
-```ts
+```typescript
 import {
   ArrayMaxSize,
   IsArray,
@@ -546,7 +546,7 @@ banco.
 
 **Novo arquivo:** `src/anotacoes/dto/filtrar-anotacoes.dto.ts`
 
-```ts
+```typescript
 import {
   IsOptional,
   IsString,
@@ -568,7 +568,7 @@ ser texto de até 30 caracteres quando enviado.
 
 **Novo arquivo:** `src/anotacoes/anotacoes.service.ts`
 
-```ts
+```typescript
 import {
   Injectable,
   NotFoundException,
@@ -593,7 +593,7 @@ PostgreSQL. `FilterQuery` tipa filtros do Mongoose.
 
 **Arquivo:** `src/anotacoes/anotacoes.service.ts`
 
-```ts
+```typescript
 @Injectable()
 export class AnotacoesService {
   constructor(
@@ -633,7 +633,7 @@ Isso centraliza configuração e facilita testes.
 
 Dentro da classe:
 
-```ts
+```typescript
   private async confirmarSolicitacao(id: number) {
     const existe = await this.solicitacoes.exists({
       where: { id },
@@ -655,7 +655,7 @@ verificação porque o MongoDB não possui chave estrangeira para o PostgreSQL.
 
 **Arquivo:** `src/anotacoes/anotacoes.service.ts`
 
-```ts
+```typescript
   async criar(
     solicitacaoId: number,
     autorId: number,
@@ -703,7 +703,7 @@ model e chamar `save` depois.
 
 **Arquivo:** `src/anotacoes/anotacoes.service.ts`
 
-```ts
+```typescript
   async listar(
     solicitacaoId: number,
     filtros: FiltrarAnotacoesDto,
@@ -739,9 +739,9 @@ model e chamar `save` depois.
 
 ```mermaid
 flowchart LR
-    F["find<br/>define o filtro"] --> O["sort<br/>define a ordem"]
-    O --> L["lean<br/>define o formato"]
-    L --> E["exec<br/>envia ao banco"]
+    F["find define o filtro"] --> O["sort define a ordem"]
+    O --> L["lean define o formato"]
+    L --> E["exec envia ao banco"]
     E --> R["Promise com resultados"]
 ```
 
@@ -761,7 +761,7 @@ Comparação de retorno:
 
 **Novo arquivo:** `src/anotacoes/anotacoes.controller.ts`
 
-```ts
+```typescript
 import {
   Body,
   Controller,
@@ -796,7 +796,7 @@ aplica autenticação.
 
 Após os imports e o tipo:
 
-```ts
+```typescript
 @UseGuards(JwtAuthGuard)
 @Controller(
   'solicitacoes/:solicitacaoId/anotacoes',
@@ -833,7 +833,7 @@ protege todas as rotas. O autor vem do JWT, não do corpo.
 
 Dentro da classe, depois de `criar`:
 
-```ts
+```typescript
   @Get()
   listar(
     @Param('solicitacaoId', ParseIntPipe)
@@ -854,7 +854,7 @@ Dentro da classe, depois de `criar`:
 
 **Novo arquivo:** `src/anotacoes/anotacoes.module.ts`
 
-```ts
+```typescript
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -892,8 +892,8 @@ registra rotas e `providers` registra o service.
 
 ```mermaid
 flowchart TB
-    FR["forRootAsync<br/>abre conexão"] --> CON["Conexão MongoDB"]
-    CON --> FF["forFeature<br/>registra schema"]
+    FR["forRootAsync abre conexão"] --> CON["Conexão MongoDB"]
+    CON --> FF["forFeature registra schema"]
     FF --> MODEL["Model Anotacao"]
     MODEL --> SERVICE["AnotacoesService"]
 ```
@@ -908,7 +908,7 @@ nos módulos que precisam de models específicos. Registrar a conexão sem
 
 Acrescente aos imports:
 
-```ts
+```typescript
 import {
   ConfigModule,
   ConfigService,
@@ -919,7 +919,7 @@ import { AnotacoesModule } from './anotacoes/anotacoes.module';
 
 No array `imports` de `@Module`, acrescente:
 
-```ts
+```typescript
 ConfigModule.forRoot({
   isGlobal: true,
 }),
@@ -971,7 +971,7 @@ Não duplique `ConfigModule` e não remova TypeORM, autenticação ou solicitaç
 
 Confirme que existe:
 
-```ts
+```typescript
 app.useGlobalPipes(
   new ValidationPipe({
     whitelist: true,
