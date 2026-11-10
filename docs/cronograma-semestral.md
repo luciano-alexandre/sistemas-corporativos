@@ -21,11 +21,11 @@ Cada encontro corresponde a duas aulas de 45 minutos.
 | [15](encontros/encontro-15.md) | U1 | Fundamentos de NoSQL e laboratório com MongoDB |
 | [16](encontros/encontro-16.md) | U1 | Prática de revisão: MongoDB com Docker |
 | [17](encontros/encontro-17.md) | U1 | Integração da API NestJS com MongoDB |
-| [18](encontros/encontro-18.md) | U1 | Modelagem de domínio |
-| [19](encontros/encontro-19.md) | U1 | Casos de uso, processos, regras e workflows |
-| [20](encontros/encontro-20.md) | U1 | **Dia reservado ao Seminário (20 pontos)** |
-| [21](encontros/encontro-21.md) | U2 | Integração corporativa |
-| [22](encontros/encontro-22.md) | U2 | APIs corporativas |
+| 18 | U1 | **Apresentações do Seminário — sessão 1** |
+| 19 | U1 | **Apresentações do Seminário — sessão 2** |
+| 20 | U1 | **Apresentações do Seminário — sessão 3** |
+| 21 | U2 | **Apresentações do Seminário — sessão 4** |
+| 22 | U2 | **Apresentações do Seminário — sessão 5** |
 | [23](encontros/encontro-23.md) | U2 | Fundamentos de mensageria |
 | [24](encontros/encontro-24.md) | U2 | Eventos, idempotência e outbox |
 | [25](encontros/encontro-25.md) | U2 | Sagas e consistência distribuída |
@@ -48,7 +48,7 @@ Cada encontro corresponde a duas aulas de 45 minutos.
 ## Marcos de avaliação
 
 - 20 pontos em práticas: encontros 6 e 12, integralmente reservados;
-- 20 pontos em seminário: encontro 20, integralmente reservado;
+- 20 pontos em seminário: encontros 18–22, integralmente reservados;
 - 50 pontos em projeto final: desenvolvimento até o encontro 36 e
   apresentações nos encontros 37–40.
 

@@ -29,7 +29,8 @@ práticas de entrega.
 - **Unidade 1 (encontros 1–20):** conceito de sistema corporativo, síntese dos
   encontros 1–15 de Backend, segurança, persistência, testes, deploy,
   fundamentos arquiteturais e modelagem do domínio.
-- **Unidade 2 (encontros 21–40):** integração, eventos, mensageria,
+- **Unidade 2 (encontros 21–40):** continuidade das apresentações do seminário
+  nos encontros 21–22, seguida por integração, eventos, mensageria,
   confiabilidade, observabilidade, DevOps, governança e projeto final. Os
   encontros 35–36 são reservados ao acompanhamento dos projetos e os encontros
   37–40 são exclusivos para apresentações.

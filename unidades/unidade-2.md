@@ -13,6 +13,7 @@
 
 ## Produtos
 
-Seminário, pipeline, evidências operacionais e projeto final. Os encontros 35 e
-36 são reservados ao acompanhamento das equipes, e os encontros 37–40 às
-apresentações.
+Seminário, pipeline, evidências operacionais e projeto final. Os encontros 21 e
+22 dão continuidade às apresentações do seminário, os encontros 35 e 36 são
+reservados ao acompanhamento das equipes, e os encontros 37–40 às apresentações
+dos projetos finais.
