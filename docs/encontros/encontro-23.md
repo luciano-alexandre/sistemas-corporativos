@@ -1,34 +1,65 @@
-# Encontro 23
+# Encontro 23 — Orientação e definição do tema do projeto final
 
 ## Tema
 
-Fundamentos de mensageria.
+Orientação inicial e definição de temas para o desenvolvimento do projeto final.
 
-## Objetivos
+## Proposta do projeto
 
-- Distinguir fila, tópico e stream.
-- Compreender acknowledgements, ordenação e dead-letter queue.
+O projeto final deverá apresentar uma solução para um problema real ou
+realista. A proposta não precisa ser grande, mas deve permitir que a equipe
+aplique, de forma integrada, os conhecimentos desenvolvidos na disciplina.
 
-## Questão orientadora
+Entre os conceitos que podem aparecer no projeto estão:
 
-Como este tema altera a capacidade de um sistema sustentar processos críticos,
-integrar-se, permanecer seguro e evoluir com a organização?
+- construção e organização de uma API com NestJS;
+- autenticação, autorização e segurança de acesso;
+- validação dos dados recebidos pela aplicação;
+- regras de negócio e tratamento de erros;
+- persistência de dados com PostgreSQL e TypeORM;
+- migrations, transações, concorrência e auditoria;
+- uso de MongoDB quando o problema justificar dados não relacionais;
+- execução dos serviços necessários com Docker;
+- documentação da solução.
 
-## Organização sugerida (90 minutos)
 
-1. Retomada e contextualização: 10 min
-2. Conceitos e estudo de caso: 20 min
-3. Demonstração ou modelagem: 20 min
-4. Atividade prática, discussão ou projeto: 30 min
-5. Evidência e fechamento: 10 min
+## Relação com Projeto Integrador
 
-## Atividade e saída esperada
+Os estudantes que também cursam a disciplina de Projeto Integrador poderão
+utilizar o mesmo trabalho nas duas disciplinas. Nesse caso, devem aplicar os conceitos estudados na disciplina e os pré-requisitos definidos.
 
-Produtor e consumidor executando localmente.
+Quem não cursa Projeto Integrador deverá definir ou validar o tema do seu
+projeto final.
 
-## Conexão com o percurso
+## Escolha do tema
 
-O encontro utiliza a API e os artefatos acumulados como laboratório. Decisões
-devem explicitar contexto, alternativas, consequências e impacto nos requisitos
-funcionais e não funcionais do sistema corporativo.
+O tema deve partir de uma situação que tenha usuários, informações a serem
+registradas, regras e um fluxo de trabalho identificável. Alguns exemplos de
+contextos que podem inspirar a escolha são:
+
+- controle de solicitações de manutenção;
+- acompanhamento de atendimentos ou serviços;
+- reserva de salas, equipamentos ou outros recursos;
+- controle de estoque e movimentações;
+- organização de eventos e inscrições;
+- acompanhamento de projetos e tarefas;
+- gestão de despesas, compras ou reembolsos;
+- sistemas voltados a demandas do Projeto Integrador.
+
+Esses exemplos são apenas pontos de partida. A equipe pode propor outro tema,
+desde que ele permita aplicar os conceitos da disciplina e seja validado pelo
+professor.
+
+## Registro inicial
+
+Enviar na tarefa do Google Sala de Aula:
+
+- nome do projeto;
+- integrantes da equipe;
+- breve descrição do problema;
+- público ou usuários envolvidos;
+- ideia do fluxo principal;
+- principais funcionalidades imaginadas;
+- conceitos da disciplina que poderão ser utilizados;
+- indicação de vínculo, ou não, com Projeto Integrador;
 
