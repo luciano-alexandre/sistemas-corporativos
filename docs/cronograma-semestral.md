@@ -27,7 +27,7 @@ Cada encontro corresponde a duas aulas de 45 minutos.
 | 21 | U2 | **Apresentações do Seminário — sessão 4** |
 | 22 | U2 | **Apresentações do Seminário — sessão 5** |
 | [23](encontros/encontro-23.md) | U2 | Orientação e definição de temas para o projeto final |
-| [24](encontros/encontro-24.md) | U2 | Eventos, idempotência e outbox |
+| [24](encontros/encontro-24.md) | U2 | Documentação de APIs com Swagger e OpenAPI |
 | [25](encontros/encontro-25.md) | U2 | Sagas e consistência distribuída |
 | [26](encontros/encontro-26.md) | U2 | Microsserviços com critérios |
 | [27](encontros/encontro-27.md) | U2 | Padrões de resiliência |
