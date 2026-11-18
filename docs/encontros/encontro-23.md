@@ -19,6 +19,7 @@ Entre os conceitos que podem aparecer no projeto estão:
 - persistência de dados com PostgreSQL e TypeORM;
 - migrations, transações, concorrência e auditoria;
 - uso de MongoDB quando o problema justificar dados não relacionais;
+- uso de Redis para cache em pelo menos 1 endpoint
 - execução dos serviços necessários com Docker;
 - documentação da solução.
 
