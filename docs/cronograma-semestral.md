@@ -28,10 +28,10 @@ Cada encontro corresponde a duas aulas de 45 minutos.
 | 22 | U2 | **Apresentações do Seminário — sessão 5** |
 | [23](encontros/encontro-23.md) | U2 | Orientação e definição de temas para o projeto final |
 | [24](encontros/encontro-24.md) | U2 | Documentação de APIs com Swagger e OpenAPI |
-| [25](encontros/encontro-25.md) | U2 | Sagas e consistência distribuída |
+| [25](encontros/encontro-25.md) | U2 | Cache com NestJS e Redis |
 | [26](encontros/encontro-26.md) | U2 | Microsserviços com critérios |
 | [27](encontros/encontro-27.md) | U2 | Padrões de resiliência |
-| [28](encontros/encontro-28.md) | U2 | Cache, desempenho e escala |
+| [28](encontros/encontro-28.md) | U2 | Desempenho, testes de carga e escala |
 | [29](encontros/encontro-29.md) | U2 | Jobs e processamento em segundo plano |
 | [30](encontros/encontro-30.md) | U2 | CI/CD e ambientes |
 | [31](encontros/encontro-31.md) | U2 | IAM, OAuth 2.0, OIDC e SSO |

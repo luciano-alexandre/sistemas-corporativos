@@ -2,13 +2,13 @@
 
 ## Tema
 
-Cache, desempenho e escala.
+Desempenho, testes de carga e escala.
 
 ## Objetivos
 
-- Escolher o que e onde armazenar em cache.
-- Tratar invalidação.
 - Medir antes de otimizar.
+- Identificar gargalos com evidências.
+- Realizar testes de carga básicos.
 - Estimar capacidade.
 
 ## Questão orientadora
@@ -26,7 +26,9 @@ integrar-se, permanecer seguro e evoluir com a organização?
 
 ## Atividade e saída esperada
 
-Teste de carga básico com análise.
+Teste de carga básico com comparação de latência, vazão e taxa de erros. O
+cache implementado no encontro 25 poderá ser ativado ou desativado para
+comparar resultados.
 
 ## Conexão com o percurso
 
